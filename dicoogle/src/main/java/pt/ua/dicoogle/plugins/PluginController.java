@@ -23,6 +23,7 @@ import org.apache.commons.io.FileUtils;
 import org.restlet.resource.ServerResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pt.ua.dicoogle.core.mlprovider.PrepareDatasetTask;
 import pt.ua.dicoogle.core.settings.ServerSettingsManager;
 import pt.ua.dicoogle.plugins.webui.WebUIPlugin;
 import pt.ua.dicoogle.plugins.webui.WebUIPluginManager;
@@ -31,12 +32,15 @@ import pt.ua.dicoogle.sdk.datastructs.Report;
 import pt.ua.dicoogle.sdk.datastructs.UnindexReport;
 import pt.ua.dicoogle.sdk.datastructs.SearchResult;
 import pt.ua.dicoogle.sdk.datastructs.dim.DimLevel;
+import pt.ua.dicoogle.sdk.mlprovider.MLDataset;
+import pt.ua.dicoogle.sdk.mlprovider.MLProviderInterface;
 import pt.ua.dicoogle.sdk.settings.ConfigurationHolder;
 import pt.ua.dicoogle.sdk.task.JointQueryTask;
 import pt.ua.dicoogle.sdk.task.Task;
 import pt.ua.dicoogle.server.ControlServices;
 import pt.ua.dicoogle.server.PluginRestletApplication;
 import pt.ua.dicoogle.server.web.DicoogleWeb;
+import pt.ua.dicoogle.core.mlprovider.CreateDatasetRequest;
 import pt.ua.dicoogle.taskManager.RunningIndexTasks;
 import pt.ua.dicoogle.taskManager.TaskManager;
 
@@ -90,6 +94,9 @@ public class PluginController {
     // Task Managers for Queries
     private TaskManager taskManagerQueries =
             new TaskManager(Integer.parseInt(System.getProperty("dicoogle.taskManager.nQueryThreads", "4")));
+
+    private final TaskManager taskManagerML =
+            new TaskManager(Integer.parseInt(System.getProperty("dicoogle.taskManager.nMLThreads", "1")));
 
     /** Whether to shut down Dicoogle when a plugin is marked as dead */
     private static boolean DEAD_PLUGIN_KILL_SWITCH =
@@ -361,6 +368,19 @@ public class PluginController {
         return this.getServletPlugins(true);
     }
 
+    public Collection<MLProviderInterface> getMLPlugins(boolean onlyEnabled) {
+        List<MLProviderInterface> plugins = new ArrayList<>();
+        for (PluginSet pSet : pluginSets) {
+            for (MLProviderInterface ml : pSet.getMLPlugins()) {
+                if (!ml.isEnabled() && onlyEnabled) {
+                    continue;
+                }
+                plugins.add(ml);
+            }
+        }
+        return plugins;
+    }
+
     public Collection<String> getPluginSetNames() {
         Collection<String> l = new ArrayList<>();
         for (PluginSet s : this.pluginSets) {
@@ -524,6 +544,17 @@ public class PluginController {
         return null;
     }
 
+    public MLProviderInterface getMachineLearningProviderByName(String name, boolean onlyEnabled) {
+        Collection<MLProviderInterface> plugins = getMLPlugins(onlyEnabled);
+        for (MLProviderInterface p : plugins) {
+            if (p.getName().equalsIgnoreCase(name)) {
+                // logger.info("Retrived Query Provider: "+name);
+                return p;
+            }
+        }
+        logger.debug("No machine learning provider matching name {} for onlyEnabled = {}", name, onlyEnabled);
+        return null;
+    }
 
     public JointQueryTask queryAll(JointQueryTask holder, final String query, final Object... parameters) {
         List<String> providers = this.getQueryProvidersName(true);
@@ -894,7 +925,6 @@ public class PluginController {
         return reports;
     }
 
-
     /**
      * Generate and dispatch an unindex task.
      * @param items Collection of URIs to unindex
@@ -924,6 +954,33 @@ public class PluginController {
         return task;
     }
 
+    /**
+     * This method creates a {@link PrepareDatasetTask}.
+     * The task is responsible for creating a directory where the processed dataset will be placed.
+     * After the task is finished, the chosen mlProvider will be invoked to upload the dataset.
+     * @param datasetRequest the dataset to upload.
+     * @return the created task
+     */
+    public Task<MLDataset> prepareMLDataset(final CreateDatasetRequest datasetRequest) {
+        String uuid = UUID.randomUUID().toString();
+        Task<MLDataset> prepareTask =
+                new Task<>("MLPrepareDatasetTask" + uuid, new PrepareDatasetTask(this, datasetRequest));
+        prepareTask.onCompletion(() -> {
+            MLProviderInterface mlInterface = getMachineLearningProviderByName(datasetRequest.getProviderName(), true);
+            if (mlInterface == null) {
+                logger.error("MLProvider with name {} not found", prepareTask.getName());
+            } else {
+                try {
+                    mlInterface.createDataset(prepareTask.get());
+                } catch (InterruptedException | ExecutionException e) {
+                    logger.error("Task {} failed execution", prepareTask.getName(), e);
+                }
+            }
+        });
+        logger.debug("Fired prepare dataset task with uuid {}", uuid);
+        taskManagerML.dispatch(prepareTask);
+        return prepareTask;
+    }
 
     // Methods for Web UI
 

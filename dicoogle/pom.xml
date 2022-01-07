@@ -377,9 +377,9 @@
         </dependency>
 
         <dependency>
-            <groupId>dcm4che</groupId>
-            <artifactId>dcm4che-imageio</artifactId>
-            <version>${dcm4che.version}</version>
+            <artifactId>dcm4che-core</artifactId>
+            <groupId>org.dcm4che</groupId>
+            <version>3.3.7</version>
         </dependency>
 
         <dependency>
@@ -464,6 +464,11 @@
             <groupId>net.kencochrane.raven</groupId>
             <artifactId>raven-log4j2</artifactId>
             <version>5.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.dcm4che</groupId>
+            <artifactId>dcm4che-imageio</artifactId>
+            <version>3.3.7</version>
         </dependency>
     </dependencies>
 </project>

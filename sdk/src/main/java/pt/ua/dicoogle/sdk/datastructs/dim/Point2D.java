@@ -1,5 +1,8 @@
 package pt.ua.dicoogle.sdk.datastructs.dim;
 
+/**
+ * A point in pixel coordinates, to be used to identify coordinates in pixel space.
+ */
 public class Point2D {
 
     private int x;

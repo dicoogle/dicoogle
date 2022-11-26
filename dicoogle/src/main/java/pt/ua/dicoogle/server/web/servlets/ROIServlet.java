@@ -3,16 +3,9 @@ package pt.ua.dicoogle.server.web.servlets;
 import org.restlet.data.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pt.ua.dicoogle.core.settings.ServerSettingsManager;
-import pt.ua.dicoogle.plugins.PluginController;
-import pt.ua.dicoogle.sdk.QueryInterface;
-import pt.ua.dicoogle.sdk.StorageInputStream;
-import pt.ua.dicoogle.sdk.datastructs.SearchResult;
 import pt.ua.dicoogle.sdk.datastructs.dim.BulkAnnotation;
 import pt.ua.dicoogle.sdk.datastructs.dim.Point2D;
-import pt.ua.dicoogle.sdk.utils.QueryException;
 import pt.ua.dicoogle.server.web.dicom.ROIExtractor;
-import pt.ua.dicoogle.server.web.utils.LocalImageCache;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
@@ -26,13 +19,10 @@ import java.util.*;
 
 public class ROIServlet extends HttpServlet {
 
-
     private static final Logger logger = LoggerFactory.getLogger(ROIServlet.class);
     private static final long serialVersionUID = 1L;
 
-    private final String queryProvider;
     private final ROIExtractor roiExtractor;
-    private HashMap<String, String> extraFields;
 
     /**
      * Creates ROI servlet servlet.
@@ -40,23 +30,12 @@ public class ROIServlet extends HttpServlet {
      */
     public ROIServlet() {
         this.roiExtractor = new ROIExtractor();
-        List<String> dicomProviders = ServerSettingsManager.getSettings().getArchiveSettings().getDIMProviders();
-        queryProvider = dicomProviders.iterator().next();
-
-        extraFields = new HashMap<>();
-        extraFields.put("SOPInstanceUID", "SOPInstanceUID");
-        extraFields.put("SharedFunctionalGroupsSequence_PixelMeasuresSequence_PixelSpacing", "SharedFunctionalGroupsSequence_PixelMeasuresSequence_PixelSpacing");
-        extraFields.put("Rows", "Rows");
-        extraFields.put("Columns", "Columns");
-        extraFields.put("NumberOfFrames", "NumberOfFrames");
-        extraFields.put("TotalPixelMatrixColumns", "TotalPixelMatrixColumns");
-        extraFields.put("TotalPixelMatrixRows", "TotalPixelMatrixRows");
-        extraFields.put("ImageType", "ImageType");
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         String sopInstanceUID = request.getParameter("uid");
         String x = request.getParameter("x");
         String y = request.getParameter("y");
@@ -93,29 +72,7 @@ public class ROIServlet extends HttpServlet {
             return;
         }
 
-        QueryInterface queryInterface = PluginController.getInstance().getQueryProviderByName(queryProvider, false);
-
-        String query = String.format("SOPInstanceUID:%s", sopInstanceUID);
-        Iterable<SearchResult> results;
-        try {
-            results = queryInterface.query(query, extraFields);
-        } catch (QueryException e) {
-            logger.error("Error requesting ROI for image {}", sopInstanceUID, e);
-            response.sendError(Status.SERVER_ERROR_INTERNAL.getCode(), "Error building response");
-            return;
-        }
-
-        if(!results.iterator().hasNext()){
-            response.sendError(Status.CLIENT_ERROR_NOT_FOUND.getCode(), String.format("No instances exist with SOPInstanceUID: %s", sopInstanceUID));
-            return;
-        }
-
-        //We're only expecting one result
-        SearchResult result = results.iterator().next();
-
-        StorageInputStream sis = PluginController.getInstance().resolveURI(result.getURI()).iterator().next();
-
-        BufferedImage bi = roiExtractor.extractROI(sis, annotation);
+        BufferedImage bi = roiExtractor.extractROI(sopInstanceUID, annotation);
 
         if(bi != null){
             response.setContentType("image/jpeg");

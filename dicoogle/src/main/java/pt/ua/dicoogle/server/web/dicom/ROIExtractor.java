@@ -30,19 +30,22 @@ public class ROIExtractor {
     }
 
     public BufferedImage extractROI(String sopInstanceUID, BulkAnnotation bulkAnnotation) {
+        DicomMetaData metaData;
+        try {
+            metaData = getDicomMetadata(sopInstanceUID);
+        } catch (IOException e) {
+            logger.error("Could not extract metadata", e);
+            return null;
+        }
+        return extractROI(metaData, bulkAnnotation);
+    }
+
+    public BufferedImage extractROI(DicomMetaData dicomMetaData, BulkAnnotation bulkAnnotation) {
 
         ImageReader imageReader = getImageReader();
 
         if(imageReader == null)
             return null;
-
-        DicomMetaData dicomMetaData;
-        try {
-            dicomMetaData = getDicomMetadata(sopInstanceUID);
-        } catch (IOException e) {
-            logger.error("Error reading DICOM file", e);
-            return null;
-        }
 
         if(dicomMetaData == null){
             return null;
@@ -99,16 +102,16 @@ public class ROIExtractor {
         switch (annotation.getAnnotationType()) {
             case RECTANGLE:
                 // Calculate the starting position of the annotation in frame coordinates
-                int x_c = annotation.getPoints().get(0).getX() / descriptor.getTileWidth();
-                int y_c = annotation.getPoints().get(0).getY() / descriptor.getTileHeight();
+                int x_c = (int) (annotation.getPoints().get(0).getX() / descriptor.getTileWidth());
+                int y_c = (int) (annotation.getPoints().get(0).getY() / descriptor.getTileHeight());
 
                 //Annotation is completely out of bounds, no intersection possible
                 if(x_c > nx_tiles || y_c > ny_tiles)
                     return matrix;
 
                 // Calculate the ending position of the annotation in frame coordinates
-                int x_e = annotation.getPoints().get(3).getX() / descriptor.getTileWidth();
-                int y_e = annotation.getPoints().get(3).getY() / descriptor.getTileHeight();
+                int x_e = (int) (annotation.getPoints().get(3).getX() / descriptor.getTileWidth());
+                int y_e = (int) (annotation.getPoints().get(3).getY() / descriptor.getTileHeight());
 
                 //Annotation might be out of bonds, adjust that
                 if(x_e > (nx_tiles - 1))
@@ -148,8 +151,8 @@ public class ROIExtractor {
         Point2D annotationPoint1 = annotation.getPoints().get(0);
         Point2D annotationPoint2 = annotation.getPoints().get(3);
 
-        int clipX = Math.max(annotationPoint2.getX() - descriptor.getTotalPixelMatrixColumns(), 0);
-        int clipY = Math.max(annotationPoint2.getY() - descriptor.getTotalPixelMatrixRows(), 0);
+        int clipX = (int) Math.max(annotationPoint2.getX() - descriptor.getTotalPixelMatrixColumns(), 0);
+        int clipY = (int) Math.max(annotationPoint2.getY() - descriptor.getTotalPixelMatrixRows(), 0);
 
         int annotationWidth = (int) annotation.getPoints().get(0).distance(annotation.getPoints().get(1)) - clipX;
         int annotationHeight = (int) annotation.getPoints().get(0).distance(annotation.getPoints().get(2)) - clipY;
@@ -174,17 +177,17 @@ public class ROIExtractor {
                 Point2D intersectionPoint1 = new Point2D(Math.max(annotationPoint1.getX(), framePoint1.getX()), Math.max(annotationPoint1.getY(), framePoint1.getY()));
                 Point2D intersectionPoint2 = new Point2D(Math.min(annotationPoint2.getX(), framePoint2.getX()), Math.min(annotationPoint2.getY(), framePoint2.getY()));
 
-                int startX = intersectionPoint1.getX() - annotationPoint1.getX();
-                int startY = intersectionPoint1.getY() - annotationPoint1.getY();
+                int startX = (int) (intersectionPoint1.getX() - annotationPoint1.getX());
+                int startY = (int) (intersectionPoint1.getY() - annotationPoint1.getY());
 
-                int endX = intersectionPoint2.getX() - annotationPoint1.getX();
-                int endY = intersectionPoint2.getY() - annotationPoint1.getY();
+                int endX = (int) (intersectionPoint2.getX() - annotationPoint1.getX());
+                int endY = (int) (intersectionPoint2.getY() - annotationPoint1.getY());
 
-                int frameStartX = intersectionPoint1.getX() - framePoint1.getX();
-                int frameStartY = intersectionPoint1.getY() - framePoint1.getY();
+                int frameStartX = (int) (intersectionPoint1.getX() - framePoint1.getX());
+                int frameStartY = (int) (intersectionPoint1.getY() - framePoint1.getY());
 
-                int frameEndX = intersectionPoint2.getX() - framePoint1.getX();
-                int frameEndY = intersectionPoint2.getY() - framePoint1.getY();
+                int frameEndX = (int) (intersectionPoint2.getX() - framePoint1.getX());
+                int frameEndY = (int) (intersectionPoint2.getY() - framePoint1.getY());
 
                 int deltaX = frameEndX - frameStartX;
                 int deltaY = frameEndY - frameStartY;

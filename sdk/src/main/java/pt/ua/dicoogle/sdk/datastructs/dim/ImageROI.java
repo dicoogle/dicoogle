@@ -1,18 +1,16 @@
-package pt.ua.dicoogle.sdk.imageworker;
+package pt.ua.dicoogle.sdk.datastructs.dim;
 
-import java.io.File;
 import java.net.URI;
 import java.util.Objects;
 
 /**
  * This object defines an Image ROI.
- * It has a physical location defined by an URI.
- * It is possible to write the image contents to a file defined by the URI.
  * The ROI has an x and y position that identify its origin in the source image.
  * The SOPInstanceUID defines where this ROI was extracted from.
  */
 public class ImageROI {
 
+    /** Not in use **/
     public enum FileType {
         JPEG (".jpg", "image/jpeg"),
         PNG (".png", "image/png");
@@ -44,30 +42,11 @@ public class ImageROI {
 
     private FileType fileType;
 
-    private ImageROI(URI uriROI){
-        File f = new File(uriROI);
-        if(!f.exists())
-            throw new IllegalArgumentException(String.format("URI %s does not exist", uriROI.getPath()));
-        this.x = 0;
-        this.y = 0;
-    }
-
-    public ImageROI(String sopInstanceUID, int width, int height, URI uriROI, FileType fileType) {
-        this(uriROI);
-        this.width = width;
-        this.height = height;
-        this.uriROI = uriROI;
-        this.fileType = fileType;
-    }
-
-    public ImageROI(String sopInstanceUID, int x, int y, int width, int height, URI uriROI, FileType fileType) {
-        this(uriROI);
+    public ImageROI(String sopInstanceUID, int x, int y, int width, int height) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
-        this.uriROI = uriROI;
-        this.fileType = fileType;
     }
 
     public double getX() {

@@ -138,6 +138,9 @@ public class DicoogleWeb {
         // setup the ROI extractor
         final ServletContextHandler roiExtractor = createServletHandler(new ROIServlet(), "/roi");
 
+        // setup the ml endpoints
+        final ServletContextHandler makePrediction = createServletHandler(new MakePredictionServlet(), "/makePrediction");
+
         // setup the DICOM to PNG image servlet
         final ServletContextHandler dictags = createServletHandler(new TagsServlet(), "/dictags");
 
@@ -176,7 +179,7 @@ public class DicoogleWeb {
         PluginRestletApplication.attachRestPlugin(new VersionResource());
 
         // list the all the handlers mounted above
-        Handler[] handlers = new Handler[] {pluginHandler, legacyHandler, dic2png, roiExtractor, dictags,
+        Handler[] handlers = new Handler[] {pluginHandler, legacyHandler, dic2png, roiExtractor, makePrediction, dictags,
                 createServletHandler(new IndexerServlet(), "/indexer"), // DEPRECATED
                 createServletHandler(new SettingsServlet(), "/settings"), csvServletHolder,
                 createServletHandler(new LoginServlet(), "/login"),

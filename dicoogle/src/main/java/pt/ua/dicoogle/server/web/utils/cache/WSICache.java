@@ -24,7 +24,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
 /**
- * Cache used to store DicomMetadata objects temporarily, as they are quite heavy to build on-demand
+ * Cache used to store DicomMetadata objects temporarily, as they are quite heavy to build on-demand.
+ * Used only for WSI instances.
  * @author Rui Jesus <r.jesus@ua.pt>
  */
 public class WSICache extends MemoryCache<DicomMetaData>{

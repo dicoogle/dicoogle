@@ -13,7 +13,14 @@ public class BulkAnnotation {
         RECTANGLE, ELLIPSE, POLYGON, POLYLINE, POINT
     }
 
+    public enum CoordinateType {
+        TWO_DIMENSIONAL, //for image relative coordinates
+        THREE_DIMENSIONAL //for coordinates in a Cartesian system defined by a frame of reference
+    }
+
     private PixelOrigin pixelOrigin;
+
+    private CoordinateType coordinateType;
 
     private AnnotationType annotationType;
 
@@ -29,6 +36,14 @@ public class BulkAnnotation {
 
     public void setPixelOrigin(PixelOrigin pixelOrigin) {
         this.pixelOrigin = pixelOrigin;
+    }
+
+    public CoordinateType getCoordinateType() {
+        return coordinateType;
+    }
+
+    public void setCoordinateType(CoordinateType coordinateType) {
+        this.coordinateType = coordinateType;
     }
 
     public AnnotationType getAnnotationType() {

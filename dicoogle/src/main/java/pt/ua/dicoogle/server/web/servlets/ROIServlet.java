@@ -1,11 +1,13 @@
 package pt.ua.dicoogle.server.web.servlets;
 
+import org.dcm4che3.imageio.plugins.dcm.DicomMetaData;
 import org.restlet.data.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ua.dicoogle.sdk.datastructs.dim.BulkAnnotation;
 import pt.ua.dicoogle.sdk.datastructs.dim.Point2D;
 import pt.ua.dicoogle.server.web.dicom.ROIExtractor;
+import pt.ua.dicoogle.server.web.utils.cache.WSICache;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
@@ -23,6 +25,7 @@ public class ROIServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     private final ROIExtractor roiExtractor;
+    private final WSICache wsiCache;
 
     /**
      * Creates ROI servlet servlet.
@@ -30,6 +33,7 @@ public class ROIServlet extends HttpServlet {
      */
     public ROIServlet() {
         this.roiExtractor = new ROIExtractor();
+        this.wsiCache = WSICache.getInstance();
     }
 
     @Override
@@ -72,7 +76,9 @@ public class ROIServlet extends HttpServlet {
             return;
         }
 
-        BufferedImage bi = roiExtractor.extractROI(sopInstanceUID, annotation);
+        DicomMetaData metaData = getDicomMetadata(sopInstanceUID);
+
+        BufferedImage bi = roiExtractor.extractROI(metaData, annotation);
 
         if(bi != null){
             response.setContentType("image/jpeg");
@@ -83,6 +89,10 @@ public class ROIServlet extends HttpServlet {
         }
 
         response.sendError(Status.CLIENT_ERROR_NOT_FOUND.getCode(), "Could not build ROI with the provided UID");
+    }
+
+    private DicomMetaData getDicomMetadata(String sop) throws IOException{
+        return wsiCache.get(sop);
     }
 
 }

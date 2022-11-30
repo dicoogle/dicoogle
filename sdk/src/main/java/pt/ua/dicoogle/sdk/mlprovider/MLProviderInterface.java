@@ -1,7 +1,11 @@
 package pt.ua.dicoogle.sdk.mlprovider;
 
 import pt.ua.dicoogle.sdk.DicooglePlugin;
+import pt.ua.dicoogle.sdk.datastructs.dim.ImageROI;
+import pt.ua.dicoogle.sdk.task.Task;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Set;
 
@@ -10,7 +14,7 @@ import java.util.Set;
  * A machine learning provider can be a remote service, hosted on the cloud, or a simple remote/local server
  * that has installed machine learning algorithms for problem solving.
  * Machine learning providers can work with either image or csv datasets.
- * The purpose of these providers is to provide a way to develop plugins to integrate with services such as Google's Vertex API or Amazon's SageMaker API.
+ * The purpose of this interface is to provide a way to develop plugins to integrate with services such as Google's Vertex API or Amazon's SageMaker API.
  *
  * @author Rui Jesus
  */
@@ -30,17 +34,17 @@ public abstract class MLProviderInterface implements DicooglePlugin {
     public abstract MLModel createModel();
 
     /**
-     * This method creates a model using a specific dataset
+     * This method creates a endpoint that exposes a service
      */
     public abstract void createEndpoint();
 
     /**
-     * This method creates a model using a specific dataset
+     * This method lists all available endpoints
      */
     public abstract List<MLEndpoint> listEndpoints();
 
     /**
-     * This method creates a model using a specific dataset
+     * This method deletes a endpoint
      */
     public abstract void deleteEndpoint();
 
@@ -60,9 +64,10 @@ public abstract class MLProviderInterface implements DicooglePlugin {
     public abstract void deleteModel();
 
     /**
-     * This method makes a prediction about an item using the selected model
+     * Order a image prediction
+     * @param bos the image to classify
      */
-    public abstract MLPrediction makePrediction();
+    public abstract Task<MLPrediction> makePredictionOverImage(ByteArrayOutputStream bos);
 
     /**
      * This method makes a bulk prediction using the selected model

@@ -32,7 +32,9 @@ import pt.ua.dicoogle.sdk.datastructs.Report;
 import pt.ua.dicoogle.sdk.datastructs.UnindexReport;
 import pt.ua.dicoogle.sdk.datastructs.SearchResult;
 import pt.ua.dicoogle.sdk.datastructs.dim.DimLevel;
+import pt.ua.dicoogle.sdk.datastructs.dim.ImageROI;
 import pt.ua.dicoogle.sdk.mlprovider.MLDataset;
+import pt.ua.dicoogle.sdk.mlprovider.MLPrediction;
 import pt.ua.dicoogle.sdk.mlprovider.MLProviderInterface;
 import pt.ua.dicoogle.sdk.settings.ConfigurationHolder;
 import pt.ua.dicoogle.sdk.task.JointQueryTask;
@@ -44,6 +46,8 @@ import pt.ua.dicoogle.core.mlprovider.CreateDatasetRequest;
 import pt.ua.dicoogle.taskManager.RunningIndexTasks;
 import pt.ua.dicoogle.taskManager.TaskManager;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -548,7 +552,6 @@ public class PluginController {
         Collection<MLProviderInterface> plugins = getMLPlugins(onlyEnabled);
         for (MLProviderInterface p : plugins) {
             if (p.getName().equalsIgnoreCase(name)) {
-                // logger.info("Retrived Query Provider: "+name);
                 return p;
             }
         }
@@ -573,7 +576,6 @@ public class PluginController {
         return t;
 
     }
-
 
     public Task<Iterable<SearchResult>> query(String querySource, final String query, final DimLevel level,
             final Object... parameters) {
@@ -952,6 +954,23 @@ public class PluginController {
             taskManager.dispatch(task);
         }
         return task;
+    }
+
+    /**
+     * This method orders a prediction on the selected image, using the selected provider.
+     * @param bos image to classify.
+     * @param provider provider to use.
+     * @return the created task
+     */
+    public Task<MLPrediction> makePredictionOverImage(final ByteArrayOutputStream bos, final String provider) {
+        MLProviderInterface providerInterface = this.getMachineLearningProviderByName(provider, true);
+        if(providerInterface == null)
+            return null;
+
+        String taskName = "MLPredictionTask" + UUID.randomUUID();
+        Task<MLPrediction> result = providerInterface.makePredictionOverImage(bos);
+        result.setName(taskName);
+        return result;
     }
 
     /**

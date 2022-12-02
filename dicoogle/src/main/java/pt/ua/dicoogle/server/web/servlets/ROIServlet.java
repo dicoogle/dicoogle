@@ -1,5 +1,9 @@
 package pt.ua.dicoogle.server.web.servlets;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.IOUtils;
 import org.dcm4che3.imageio.plugins.dcm.DicomMetaData;
 import org.restlet.data.Status;
 import org.slf4j.Logger;
@@ -79,6 +83,48 @@ public class ROIServlet extends HttpServlet {
         DicomMetaData metaData = getDicomMetadata(sopInstanceUID);
 
         BufferedImage bi = roiExtractor.extractROI(metaData, annotation);
+
+        if(bi != null){
+            response.setContentType("image/jpeg");
+            OutputStream out = response.getOutputStream();
+            ImageIO.write(bi, "jpg", out);
+            out.close();
+            return;
+        }
+
+        response.sendError(Status.CLIENT_ERROR_NOT_FOUND.getCode(), "Could not build ROI with the provided UID");
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String jsonString = IOUtils.toString(request.getReader());
+
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode body = mapper.readTree(jsonString);
+
+        if(!body.has("uid")){
+            response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "SOPInstanceUID provided was invalid");
+            return;
+        }
+
+        if(!body.has("type")){
+            response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Annotation type must be provided");
+            return;
+        }
+
+        String sopInstanceUID = body.get("uid").asText();
+        String type = body.get("type").asText();
+        List<Point2D> points = mapper.readValue(body.get("points").toString(), new TypeReference<List<Point2D>>(){});
+
+        BulkAnnotation annotation = new BulkAnnotation();
+        annotation.setPoints(points);
+        annotation.setAnnotationType(BulkAnnotation.AnnotationType.valueOf(type));
+
+        DicomMetaData dicomMetaData = this.getDicomMetadata(sopInstanceUID);
+
+        BufferedImage bi = roiExtractor.extractROI(dicomMetaData, annotation);
 
         if(bi != null){
             response.setContentType("image/jpeg");

@@ -1,6 +1,9 @@
 package pt.ua.dicoogle.server.web.servlets.mlprovider;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.IOUtils;
 import org.dcm4che3.imageio.plugins.dcm.DicomMetaData;
 import org.restlet.data.Status;
 import org.slf4j.Logger;
@@ -23,7 +26,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -45,60 +47,38 @@ public class MakePredictionServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-        String sopInstanceUID = request.getParameter("uid");
-        String x = request.getParameter("x");
-        String y = request.getParameter("y");
-        String width = request.getParameter("width");
-        String height = request.getParameter("height");
-        String provider = request.getParameter("provider");
-        String wsi = request.getParameter("wsi");
-        final String baseSopInstanceUID = request.getParameter("baseUID");
+        String jsonString = IOUtils.toString(request.getReader());
 
-        if(sopInstanceUID == null || sopInstanceUID.isEmpty()){
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode body = mapper.readTree(jsonString);
+
+        if(!body.has("uid")){
             response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "SOPInstanceUID provided was invalid");
             return;
         }
 
-        if(provider == null || provider.isEmpty()){
+        if(!body.has("provider")){
             response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Provider provided was invalid");
             return;
         }
 
-        if(x == null || x.isEmpty() || y == null || y.isEmpty() || width == null || width.isEmpty() || height == null || height.isEmpty()){
-            response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "ROI provided was invalid");
+        if(!body.has("type")){
+            response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Annotation type must be provided");
             return;
         }
 
-        if(wsi != null && wsi.equals("true")){
-            if(baseSopInstanceUID == null || baseSopInstanceUID.isEmpty()){
-                response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "WSI was selected but a valid base SopInstanceUID was not provided");
-                return;
-            }
-        }
-
-        int nX, nY, nWidth, nHeight;
-
-        try{
-            nX = Integer.parseInt(x);
-            nY = Integer.parseInt(y);
-            nWidth = Integer.parseInt(width);
-            nHeight = Integer.parseInt(height);
-        } catch (NumberFormatException e){
-            response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "ROI provided was invalid");
-            return;
-        }
+        String sopInstanceUID = body.get("uid").asText();
+        String baseSopInstanceUID = body.get("baseUID").asText();
+        String provider = body.get("provider").asText();
+        String type = body.get("type").asText();
+        boolean wsi = body.get("wsi").asBoolean();
+        List<Point2D> points = mapper.readValue(body.get("points").toString(), new TypeReference<List<Point2D>>(){});
 
         BulkAnnotation annotation = new BulkAnnotation();
-        Point2D tl = new Point2D(nX, nY);
-        Point2D tr = new Point2D(nX + nWidth, nY);
-        Point2D bl = new Point2D(nX, nY + nHeight);
-        Point2D br = new Point2D(nX + nWidth, nY + nHeight);
-        List<Point2D> points = new ArrayList<>();
-        points.add(tl); points.add(tr); points.add(bl); points.add(br);
         annotation.setPoints(points);
-        annotation.setAnnotationType(BulkAnnotation.AnnotationType.RECTANGLE);
+        annotation.setAnnotationType(BulkAnnotation.AnnotationType.valueOf(type));
 
         DicomMetaData dicomMetaData = this.getDicomMetadata(sopInstanceUID);
 
@@ -119,20 +99,24 @@ public class MakePredictionServlet extends HttpServlet {
             try {
                 MLPrediction prediction = task.get();
 
+                if(prediction == null){
+                    log.error("Provider returned null prediction");
+                    response.sendError(Status.SERVER_ERROR_INTERNAL.getCode(), "Could not make prediction");
+                    return;
+                }
+
                 // Coordinates need to be converted if we're working with WSI
-                if(wsi.equals("true")){
+                if(wsi && !prediction.getAnnotations().isEmpty()){
                     WSISopDescriptor descriptor = new WSISopDescriptor();
                     descriptor.extractData(dicomMetaData.getAttributes());
                     DicomMetaData base = this.getDicomMetadata(baseSopInstanceUID);
                     WSISopDescriptor baseDescriptor = new WSISopDescriptor();
                     baseDescriptor.extractData(base.getAttributes());
                     double scale = (descriptor.getTotalPixelMatrixRows() * 1.0) / baseDescriptor.getTotalPixelMatrixRows();
-                    if(scale != 1){ // scale will be 1 if the levels match, no conversion needed
-                        convertCoordinates(prediction, nX, nY, scale);
-                    }
+                    Point2D tl = annotation.getBoundingBox().get(0);
+                    convertCoordinates(prediction, tl, scale);
                 }
 
-                ObjectMapper mapper = new ObjectMapper();
                 response.setContentType("application/json");
                 PrintWriter out = response.getWriter();
                 mapper.writeValue(out, prediction);
@@ -161,14 +145,15 @@ public class MakePredictionServlet extends HttpServlet {
      * When working with WSI, it is convenient to have coordinates relative to the base of the pyramid.
      * This method takes care of that.
      * @param prediction
+     * @param tl top left corner of the bounding box of the annotation
      * @param scale to transform coordinates
      * @return the ml prediction with the converted coordinates.
      */
-    private void convertCoordinates(MLPrediction prediction, int x, int y, double scale){
+    private void convertCoordinates(MLPrediction prediction, Point2D tl, double scale){
         for(BulkAnnotation ann : prediction.getAnnotations()){
             for(Point2D p : ann.getPoints()){
-                p.setX((p.getX() + x)/scale);
-                p.setY((p.getY() + y)/scale);
+                p.setX((p.getX() + tl.getX())/scale);
+                p.setY((p.getY() + tl.getY())/scale);
             }
         }
     }

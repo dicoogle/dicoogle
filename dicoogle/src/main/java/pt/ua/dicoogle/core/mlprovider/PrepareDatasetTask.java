@@ -2,9 +2,12 @@ package pt.ua.dicoogle.core.mlprovider;
 
 import pt.ua.dicoogle.plugins.PluginController;
 import pt.ua.dicoogle.sdk.datastructs.SearchResult;
-import pt.ua.dicoogle.sdk.imageworker.ImageROI;
+import pt.ua.dicoogle.sdk.datastructs.dim.ImageROI;
 import pt.ua.dicoogle.sdk.mlprovider.MLDataset;
 import pt.ua.dicoogle.sdk.mlprovider.MLImageDataset;
+import pt.ua.dicoogle.server.web.dicom.ROIExtractor;
+import pt.ua.dicoogle.server.web.utils.cache.WSICache;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -17,10 +20,17 @@ public class PrepareDatasetTask implements Callable<MLDataset> {
     private final PluginController controller;
     private String dataset;
 
+    private final ROIExtractor roiExtractor;
+
+    private final WSICache wsiCache;
+
     public PrepareDatasetTask(PluginController controller, CreateDatasetRequest request) {
         this.controller = controller;
         this.request = request;
         this.dataset = UUID.randomUUID().toString();
+
+        this.wsiCache = WSICache.getInstance();
+        this.roiExtractor = new ROIExtractor();
     }
 
     @Override
@@ -39,8 +49,6 @@ public class PrepareDatasetTask implements Callable<MLDataset> {
 
         MLImageDataset mlDataset = new MLImageDataset();
 
-        ImageWorkerInterface worker = controller.getImageWorkerInterfaceByName("roiExtractor", true);
-
         this.request.getDataset().entrySet().forEach((entry -> {
             try {
 
@@ -49,7 +57,7 @@ public class PrepareDatasetTask implements Callable<MLDataset> {
                         .query(controller.getQueryProvidersName(true).get(0), "SOPInstanceUID:" + entry.getKey(), extraFields).get();
 
                 for (SearchResult image : results) {
-                    List<ImageROI> rois = (List<ImageROI>) worker.extractROIs(image, entry.getValue());
+                    //List<ImageROI> rois = (List<ImageROI>) roiExtractor.extractROI();
                 }
 
             } catch (InterruptedException | ExecutionException e) {

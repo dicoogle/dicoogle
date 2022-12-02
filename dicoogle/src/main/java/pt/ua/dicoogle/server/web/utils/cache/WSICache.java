@@ -45,7 +45,10 @@ public class WSICache extends MemoryCache<DicomMetaData>{
                 .build(new WsiDcmLoader());
 
         List<String> dicomProviders = ServerSettingsManager.getSettings().getArchiveSettings().getDIMProviders();
-        queryProvider = dicomProviders.iterator().next();
+        if(!dicomProviders.isEmpty())
+            queryProvider = dicomProviders.iterator().next();
+        else
+            queryProvider = "";
     }
 
     public static synchronized WSICache getInstance(){

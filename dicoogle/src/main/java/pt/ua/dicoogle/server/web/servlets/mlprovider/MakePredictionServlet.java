@@ -64,6 +64,11 @@ public class MakePredictionServlet extends HttpServlet {
             return;
         }
 
+        if(!body.has("modelID")){
+            response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Model identifier was invalid");
+            return;
+        }
+
         if(!body.has("type")){
             response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Annotation type must be provided");
             return;
@@ -72,6 +77,7 @@ public class MakePredictionServlet extends HttpServlet {
         String sopInstanceUID = body.get("uid").asText();
         String baseSopInstanceUID = body.get("baseUID").asText();
         String provider = body.get("provider").asText();
+        String modelID = body.get("modelID").asText();
         String type = body.get("type").asText();
         boolean wsi = body.get("wsi").asBoolean();
         List<Point2D> points = mapper.readValue(body.get("points").toString(), new TypeReference<List<Point2D>>(){});
@@ -89,7 +95,7 @@ public class MakePredictionServlet extends HttpServlet {
 
         ImageIO.write(bi, "jpg", bos);
 
-        Task<MLPrediction> task = PluginController.getInstance().makePredictionOverImage(bos, provider);
+        Task<MLPrediction> task = PluginController.getInstance().makePredictionOverImage(bos, provider, modelID);
         if(task == null){
             response.sendError(Status.SERVER_ERROR_INTERNAL.getCode(), "Could not create prediction task");
             return;

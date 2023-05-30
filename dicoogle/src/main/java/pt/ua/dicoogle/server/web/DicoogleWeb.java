@@ -140,6 +140,7 @@ public class DicoogleWeb {
 
         // setup the ml endpoints
         final ServletContextHandler makePrediction = createServletHandler(new MakePredictionServlet(), "/makePrediction");
+        final ServletContextHandler listAllModels = createServletHandler(new ListAllModelsServlet(), "/listAllModels");
 
         // setup the DICOM to PNG image servlet
         final ServletContextHandler dictags = createServletHandler(new TagsServlet(), "/dictags");
@@ -179,7 +180,7 @@ public class DicoogleWeb {
         PluginRestletApplication.attachRestPlugin(new VersionResource());
 
         // list the all the handlers mounted above
-        Handler[] handlers = new Handler[] {pluginHandler, legacyHandler, dic2png, roiExtractor, makePrediction, dictags,
+        Handler[] handlers = new Handler[] {pluginHandler, legacyHandler, dic2png, roiExtractor, makePrediction, dictags, listAllModels,
                 createServletHandler(new IndexerServlet(), "/indexer"), // DEPRECATED
                 createServletHandler(new SettingsServlet(), "/settings"), csvServletHolder,
                 createServletHandler(new LoginServlet(), "/login"),
@@ -225,6 +226,7 @@ public class DicoogleWeb {
                 // ml provider servlets
                 createServletHandler(new CreateDatasetServlet(), "/ml/createDataset"),
                 createServletHandler(new MakePredictionServlet(), "/ml/makePrediction"),
+                createServletHandler(new ListAllModelsServlet(), "/ml/listAllModels"),
                 createServletHandler(new MakeBulkPredictionServlet(), "/ml/makeBulkPrediction"), webpages};
 
         // setup the server

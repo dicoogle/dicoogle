@@ -960,15 +960,16 @@ public class PluginController {
      * This method orders a prediction on the selected image, using the selected provider.
      * @param bos image to classify.
      * @param provider provider to use.
+     * @param modelID the model identifier of the provider to use.
      * @return the created task
      */
-    public Task<MLPrediction> makePredictionOverImage(final ByteArrayOutputStream bos, final String provider) {
+    public Task<MLPrediction> makePredictionOverImage(final ByteArrayOutputStream bos, final String provider, final String modelID) {
         MLProviderInterface providerInterface = this.getMachineLearningProviderByName(provider, true);
         if(providerInterface == null)
             return null;
 
         String taskName = "MLPredictionTask" + UUID.randomUUID();
-        Task<MLPrediction> result = providerInterface.makePredictionOverImage(bos);
+        Task<MLPrediction> result = providerInterface.makePredictionOverImage(bos, modelID);
         result.setName(taskName);
         return result;
     }

@@ -1,10 +1,8 @@
 package pt.ua.dicoogle.sdk.mlprovider;
 
 import pt.ua.dicoogle.sdk.DicooglePlugin;
-import pt.ua.dicoogle.sdk.datastructs.dim.ImageROI;
 import pt.ua.dicoogle.sdk.task.Task;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Set;
@@ -65,9 +63,10 @@ public abstract class MLProviderInterface implements DicooglePlugin {
 
     /**
      * Order a image prediction
-     * @param bos the image to classify
+     * @param bos the image to classify.
+     * @param modelID A model identifier to be used to make the prediction.
      */
-    public abstract Task<MLPrediction> makePredictionOverImage(ByteArrayOutputStream bos);
+    public abstract Task<MLPrediction> makePredictionOverImage(ByteArrayOutputStream bos, String modelID);
 
     /**
      * This method makes a bulk prediction using the selected model

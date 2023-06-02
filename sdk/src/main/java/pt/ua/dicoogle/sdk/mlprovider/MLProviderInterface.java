@@ -3,7 +3,6 @@ package pt.ua.dicoogle.sdk.mlprovider;
 import pt.ua.dicoogle.sdk.DicooglePlugin;
 import pt.ua.dicoogle.sdk.task.Task;
 
-import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Set;
 
@@ -21,15 +20,48 @@ public abstract class MLProviderInterface implements DicooglePlugin {
     protected Set<ML_DATA_TYPE> acceptedDataTypes;
 
     /**
-     * This method creates and uploads a dataset to the machine learning provider.
-     * A dataset is defined as a set of labelled images or a labelled CSV file with one column used to label the entries.
+     * This method uploads data to the provider.
+     * The API assumes three kinds of data:
+     *   - CSV files, identified by a URI
+     *   - Image files, identified by a URI
+     *   - DICOM files, identified by their respective UIDs.
+     * This method can be used to upload labelled or un-labelled datasets to the provider.
      */
-    public abstract void createDataset(MLDataset dataset);
+    public abstract void dataStore(MLDataset dataset);
 
     /**
      * This method creates a model using a specific dataset
      */
     public abstract MLModel createModel();
+
+
+    /**
+     * This method deploys a model
+     */
+    public abstract void deployModel();
+
+    /**
+     * This method lists the models created on this provider.
+     */
+    public abstract List<MLModel> listModels();
+
+    /**
+     * This method lists the models created on this provider.
+     * @param modelID model identifier
+     */
+    public abstract MLModelTrainInfo modelInfo(String modelID);
+
+    /**
+     * This method orders the training of a model.
+     * @param modelID the unique model identifier within the provider.
+     */
+    public abstract MLTrainTask trainModel(String modelID);
+
+    /**
+     * This method orders the training of a model.
+     * @param trainingTaskID the unique training task identifier.
+     */
+    public abstract boolean stopTraining(String trainingTaskID);
 
     /**
      * This method creates a endpoint that exposes a service
@@ -47,26 +79,17 @@ public abstract class MLProviderInterface implements DicooglePlugin {
     public abstract void deleteEndpoint();
 
     /**
-     * This method deploys a model
-     */
-    public abstract void deployModel();
-
-    /**
-     * This method lists the models created on this provider.
-     */
-    public abstract List<MLModel> listModels();
-
-    /**
      * This method deletes a model
      */
     public abstract void deleteModel();
 
     /**
-     * Order a image prediction
-     * @param bos the image to classify.
-     * @param modelID A model identifier to be used to make the prediction.
+     * Order a prediction over a single object.
+     * The object can be a series instance, a sop instance or a 2D/3D ROI.
+     *
+     * @param predictionRequest object that defines this prediction request
      */
-    public abstract Task<MLPrediction> makePredictionOverImage(ByteArrayOutputStream bos, String modelID);
+    public abstract Task<MLPrediction> makePrediction(MLPredictionRequest predictionRequest);
 
     /**
      * This method makes a bulk prediction using the selected model

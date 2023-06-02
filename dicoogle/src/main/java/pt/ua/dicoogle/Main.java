@@ -176,9 +176,11 @@ public class Main {
         pt.ua.dicoogle.server.ControlServices.getInstance();
 
         // Register Image Reader for DICOM Objects
-        IIORegistry.getDefaultInstance().registerServiceProvider(new DicomImageReaderSpi());
-        ImageIO.setUseCache(false);
-        System.setProperty("dcm4che.useImageIOServiceRegistry", "true");
+        if(settings.getArchiveSettings().isSupportWSI()){
+            IIORegistry.getDefaultInstance().registerServiceProvider(new DicomImageReaderSpi());
+            ImageIO.setUseCache(false);
+            System.setProperty("dcm4che.useImageIOServiceRegistry", "true");
+        }
 
         // Launch Async Index
         // It monitors a folder, and when a file is touched an event

@@ -4,6 +4,10 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * An ML dataset of image objects.
+ * Optionally an array of labels can be given to create a labelled dataset.
+ */
 public class MLImageDataset extends MLDataset {
 
     private HashMap<URI, List<MLlabel>> dataset;

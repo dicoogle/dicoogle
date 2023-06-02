@@ -43,6 +43,7 @@ public class ArchiveImpl implements ServerSettings.Archive {
         a.indexerEffort = 100;
         a.dirWatcherEnabled = false;
         a.watchDirectory = "";
+        a.supportWSI = false;
 
         // Note: make it `true` in Dicoogle 4
         a.callShutdown = false;
@@ -75,6 +76,9 @@ public class ArchiveImpl implements ServerSettings.Archive {
 
     @JsonProperty("watch-directory")
     private String watchDirectory;
+
+    @JsonProperty("support-wsi")
+    private boolean supportWSI;
 
     @JsonProperty(value = "encrypt-users-file", defaultValue = "false")
     private boolean encryptUsersFile;
@@ -154,6 +158,14 @@ public class ArchiveImpl implements ServerSettings.Archive {
         this.watchDirectory = watchDirectory;
     }
 
+    public boolean isSupportWSI() {
+        return supportWSI;
+    }
+
+    public void setSupportWSI(boolean supportWSI) {
+        this.supportWSI = supportWSI;
+    }
+
     @Override
     public String getNodeName() {
         return nodeName;
@@ -189,7 +201,7 @@ public class ArchiveImpl implements ServerSettings.Archive {
         return "ArchiveImpl{" + "saveThumbnails=" + saveThumbnails + ", thumbnailSize=" + thumbnailSize
                 + ", indexerEffort=" + indexerEffort + ", dimProviders=" + dimProviders + ", defaultStorage="
                 + defaultStorage + ", dirWatcherEnabled=" + dirWatcherEnabled + ", watchDirectory='" + watchDirectory
-                + '\'' + ", mainDirectory='" + mainDirectory + '\'' + ", nodeName='" + nodeName + '\''
+                + ", supportWSI='" + supportWSI + '\'' + ", mainDirectory='" + mainDirectory + '\'' + ", nodeName='" + nodeName + '\''
                 + ", callShutdown=" + callShutdown + ", encryptUsersFile=" + encryptUsersFile + '}';
     }
 }

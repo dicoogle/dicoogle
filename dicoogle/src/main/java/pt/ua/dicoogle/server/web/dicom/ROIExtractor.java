@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import pt.ua.dicoogle.sdk.datastructs.dim.BulkAnnotation;
 import pt.ua.dicoogle.sdk.datastructs.dim.Point2D;
 import pt.ua.dicoogle.sdk.datastructs.wsi.WSIFrame;
-import pt.ua.dicoogle.sdk.datastructs.wsi.WSISopDescriptor;
 import pt.ua.dicoogle.server.web.utils.cache.WSICache;
 
 import javax.imageio.ImageIO;

@@ -1,4 +1,4 @@
-package pt.ua.dicoogle.sdk.datastructs.wsi;
+package pt.ua.dicoogle.server.web.dicom;
 
 import org.dcm4che2.data.Tag;
 import org.dcm4che3.data.Attributes;

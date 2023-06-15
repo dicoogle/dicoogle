@@ -12,7 +12,7 @@ import pt.ua.dicoogle.plugins.PluginController;
 import pt.ua.dicoogle.sdk.datastructs.dim.BulkAnnotation;
 import pt.ua.dicoogle.sdk.datastructs.dim.DimLevel;
 import pt.ua.dicoogle.sdk.datastructs.dim.Point2D;
-import pt.ua.dicoogle.sdk.datastructs.wsi.WSISopDescriptor;
+import pt.ua.dicoogle.server.web.dicom.WSISopDescriptor;
 import pt.ua.dicoogle.sdk.mlprovider.MLPrediction;
 import pt.ua.dicoogle.sdk.mlprovider.MLPredictionRequest;
 import pt.ua.dicoogle.sdk.task.Task;

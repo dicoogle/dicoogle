@@ -3,7 +3,9 @@ package pt.ua.dicoogle.server.web.servlets.mlprovider;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.dcm4che3.imageio.plugins.dcm.DicomMetaData;
 import org.restlet.data.Status;
 import org.slf4j.Logger;
@@ -13,20 +15,22 @@ import pt.ua.dicoogle.sdk.datastructs.dim.BulkAnnotation;
 import pt.ua.dicoogle.sdk.datastructs.dim.DimLevel;
 import pt.ua.dicoogle.sdk.datastructs.dim.Point2D;
 import pt.ua.dicoogle.server.web.dicom.WSISopDescriptor;
-import pt.ua.dicoogle.sdk.mlprovider.MLPrediction;
-import pt.ua.dicoogle.sdk.mlprovider.MLPredictionRequest;
+import pt.ua.dicoogle.sdk.mlprovider.MLInference;
+import pt.ua.dicoogle.sdk.mlprovider.MLInferenceRequest;
 import pt.ua.dicoogle.sdk.task.Task;
 import pt.ua.dicoogle.server.web.dicom.ROIExtractor;
 import pt.ua.dicoogle.server.web.utils.cache.WSICache;
 
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
+import java.nio.file.Files;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 public class MakePredictionServlet extends HttpServlet {
@@ -78,11 +82,11 @@ public class MakePredictionServlet extends HttpServlet {
 
         String provider = body.get("provider").asText();
         String modelID = body.get("modelID").asText();
-        boolean wsi = body.get("wsi").asBoolean();
+        boolean wsi = body.has("wsi") && body.get("wsi").asBoolean();
         DimLevel level = DimLevel.valueOf(body.get("level").asText().toUpperCase());
         String dimUID = body.get("uid").asText();
 
-        Task<MLPrediction> task;
+        Task<MLInference> task;
 
         if(wsi){
 
@@ -114,11 +118,11 @@ public class MakePredictionServlet extends HttpServlet {
         task.run();
     }
 
-    private Task<MLPrediction> sendWSIRequest(String provider, String modelID, String baseSopInstanceUID, String uid,
-                                              BulkAnnotation.AnnotationType roiType, List<Point2D> roi, HttpServletResponse response){
+    private Task<MLInference> sendWSIRequest(String provider, String modelID, String baseSopInstanceUID, String uid,
+                                             BulkAnnotation.AnnotationType roiType, List<Point2D> roi, HttpServletResponse response){
 
         ObjectMapper mapper = new ObjectMapper();
-        MLPredictionRequest predictionRequest = new MLPredictionRequest(true, DimLevel.INSTANCE, uid, modelID);
+        MLInferenceRequest predictionRequest = new MLInferenceRequest(true, DimLevel.INSTANCE, uid, modelID);
         BulkAnnotation annotation = new BulkAnnotation();
         annotation.setPoints(roi);
         annotation.setAnnotationType(roiType);
@@ -127,11 +131,11 @@ public class MakePredictionServlet extends HttpServlet {
             DicomMetaData dicomMetaData = this.getDicomMetadata(uid);
             BufferedImage bi = roiExtractor.extractROI(dicomMetaData, annotation);
             predictionRequest.setRoi(bi);
-            Task<MLPrediction> task = PluginController.getInstance().makePredictionOverImage(provider, predictionRequest);
+            Task<MLInference> task = PluginController.getInstance().infer(provider, predictionRequest);
             if(task != null){
                 task.onCompletion(() -> {
                     try {
-                        MLPrediction prediction = task.get();
+                        MLInference prediction = task.get();
 
                         if(prediction == null){
                             log.error("Provider returned null prediction");
@@ -174,14 +178,14 @@ public class MakePredictionServlet extends HttpServlet {
         }
     }
 
-    private Task<MLPrediction> sendRequest(String provider, String modelID, DimLevel level, String dimUID, HttpServletResponse response){
+    private Task<MLInference> sendRequest(String provider, String modelID, DimLevel level, String dimUID, HttpServletResponse response){
         ObjectMapper mapper = new ObjectMapper();
-        MLPredictionRequest predictionRequest = new MLPredictionRequest(true, level, dimUID, modelID);
-        Task<MLPrediction> task = PluginController.getInstance().makePredictionOverImage(provider, predictionRequest);
+        MLInferenceRequest predictionRequest = new MLInferenceRequest(false, level, dimUID, modelID);
+        Task<MLInference> task = PluginController.getInstance().infer(provider, predictionRequest);
         if(task != null){
             task.onCompletion(() -> {
                 try {
-                    MLPrediction prediction = task.get();
+                    MLInference prediction = task.get();
 
                     if(prediction == null){
                         log.error("Provider returned null prediction");
@@ -189,11 +193,61 @@ public class MakePredictionServlet extends HttpServlet {
                         return;
                     }
 
-                    response.setContentType("application/json");
-                    PrintWriter out = response.getWriter();
-                    mapper.writeValue(out, prediction);
-                    out.close();
-                    out.flush();
+                    if((prediction.getDicomSEG() != null) && !prediction.hasResults()){
+                        response.setContentType("application/dicom");
+                        ServletOutputStream out = response.getOutputStream();
+                        try (InputStream fi = Files.newInputStream(prediction.getDicomSEG())) {
+                            IOUtils.copy(fi, out);
+                            out.flush();
+                        }
+                    } else if((prediction.getDicomSEG() != null) && prediction.hasResults()){
+                        // We have a file to send, got to build a multi part response
+                        String boundary = UUID.randomUUID().toString();
+                        response.setContentType("multipart/form-data; boundary=" + boundary);
+
+                        ServletOutputStream out = response.getOutputStream();
+
+                        out.print("--" + boundary);
+                        out.println();
+                        out.print("Content-Disposition: form-data; name=\"params\"");
+                        out.println();
+                        out.print("Content-Type: application/json");
+                        out.println(); out.println();
+                        out.print(mapper.writeValueAsString(prediction));
+                        out.println();
+                        out.print("--" + boundary);
+                        out.println();
+                        out.print("Content-Disposition: form-data; name=\"dicomseg\"; filename=\"dicomseg.dcm\"");
+                        out.println();
+                        out.print("Content-Type: application/dicom");
+                        out.println(); out.println();
+
+                        try (InputStream fi = Files.newInputStream(prediction.getDicomSEG())) {
+                            IOUtils.copy(fi, out);
+                            out.flush();
+                        }
+
+                        out.println();
+                        out.print("--" + boundary + "--");
+                        out.flush();
+                        out.close();
+
+                    } else {
+                        response.setContentType("application/json");
+                        PrintWriter out = response.getWriter();
+                        mapper.writeValue(out, prediction);
+                        out.close();
+                        out.flush();
+                    }
+
+                    try{
+                        if(!StringUtils.isBlank(prediction.getResourcesFolder())){
+                            FileUtils.deleteDirectory(new File(prediction.getResourcesFolder()));
+                        }
+                    } catch (IOException e){
+                        log.warn("Could not delete temporary file", e);
+                    }
+
                 } catch (InterruptedException | ExecutionException e) {
                     log.error("Could not make prediction", e);
                     try {
@@ -222,7 +276,7 @@ public class MakePredictionServlet extends HttpServlet {
      * @param scale to transform coordinates
      * @return the ml prediction with the converted coordinates.
      */
-    private void convertCoordinates(MLPrediction prediction, Point2D tl, double scale){
+    private void convertCoordinates(MLInference prediction, Point2D tl, double scale){
         for(BulkAnnotation ann : prediction.getAnnotations()){
             for(Point2D p : ann.getPoints()){
                 p.setX((p.getX() + tl.getX())/scale);

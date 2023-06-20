@@ -34,8 +34,8 @@ import pt.ua.dicoogle.sdk.datastructs.UnindexReport;
 import pt.ua.dicoogle.sdk.datastructs.SearchResult;
 import pt.ua.dicoogle.sdk.datastructs.dim.DimLevel;
 import pt.ua.dicoogle.sdk.mlprovider.MLDataset;
-import pt.ua.dicoogle.sdk.mlprovider.MLPrediction;
-import pt.ua.dicoogle.sdk.mlprovider.MLPredictionRequest;
+import pt.ua.dicoogle.sdk.mlprovider.MLInference;
+import pt.ua.dicoogle.sdk.mlprovider.MLInferenceRequest;
 import pt.ua.dicoogle.sdk.mlprovider.MLProviderInterface;
 import pt.ua.dicoogle.sdk.settings.ConfigurationHolder;
 import pt.ua.dicoogle.sdk.task.JointQueryTask;
@@ -960,13 +960,13 @@ public class PluginController {
      * @param predictionRequest
      * @return the created task
      */
-    public Task<MLPrediction> makePredictionOverImage(final String provider, final MLPredictionRequest predictionRequest) {
+    public Task<MLInference> infer(final String provider, final MLInferenceRequest predictionRequest) {
         MLProviderInterface providerInterface = this.getMachineLearningProviderByName(provider, true);
         if(providerInterface == null)
             return null;
 
         String taskName = "MLPredictionTask" + UUID.randomUUID();
-        Task<MLPrediction> result = providerInterface.makePrediction(predictionRequest);
+        Task<MLInference> result = providerInterface.infer(predictionRequest);
         result.setName(taskName);
         return result;
     }

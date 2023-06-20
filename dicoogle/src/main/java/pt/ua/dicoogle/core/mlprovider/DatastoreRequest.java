@@ -5,8 +5,8 @@ import pt.ua.dicoogle.sdk.datastructs.dim.DimLevel;
 import pt.ua.dicoogle.sdk.mlprovider.ML_DATA_TYPE;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Java object to represent datastore requests.
@@ -34,7 +34,7 @@ public class DatastoreRequest {
      * The dataset to upload.
      * Each key should be a SOPInstanceUID and optionally the value should be a list of annotations.
      */
-    private HashMap<String, List<BulkAnnotation>> dataset;
+    private Map<String, List<BulkAnnotation>> dataset;
 
     public String getProvider() {
         return provider;
@@ -68,14 +68,19 @@ public class DatastoreRequest {
         this.uids = uids;
     }
 
-    public HashMap<String, List<BulkAnnotation>> getDataset() {
+    public Map<String, List<BulkAnnotation>> getDataset() {
         return dataset;
     }
 
-    public void setDataset(HashMap<String, List<BulkAnnotation>> dataset) {
+    public void setDataset(Map<String, List<BulkAnnotation>> dataset) {
         this.dataset = dataset;
     }
 
+    /**
+     * Check if this request has enough information to be processed.
+     * For example, if it is of DICOM type, it must specify the dim level and the dim uid.
+     * @return true if the request can processed, false otherwise.
+     */
     public boolean validate(){
         if(provider == null || provider.isEmpty())
             return false;
@@ -85,7 +90,7 @@ public class DatastoreRequest {
                 if(this.dimLevel == null || this.uids == null || this.uids.isEmpty())
                     return false;
             case IMAGE:
-                return this.dataset == null;
+                return this.dataset != null && !this.dataset.isEmpty();
             default:
                 return false;
         }

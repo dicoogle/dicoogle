@@ -1,5 +1,7 @@
 package pt.ua.dicoogle.core.mlprovider;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pt.ua.dicoogle.plugins.PluginController;
 import pt.ua.dicoogle.sdk.datastructs.SearchResult;
 import pt.ua.dicoogle.sdk.mlprovider.MLDataset;
@@ -18,6 +20,7 @@ import java.util.concurrent.ExecutionException;
  */
 public class PrepareDatastoreTask implements Callable<MLDataset> {
 
+    private static final Logger logger = LoggerFactory.getLogger(PrepareDatastoreTask.class);
     private final DatastoreRequest request;
     private final PluginController controller;
     private String dataset;
@@ -44,7 +47,7 @@ public class PrepareDatastoreTask implements Callable<MLDataset> {
         switch (request.getDataType()){
             case DICOM:
                 return new MLDicomDataset(request.getDimLevel(), request.getUids());
-            case IMAGE:
+            case IMAGE: // Not operational
                 HashMap<String, String> extraFields = new HashMap<String, String>();
 
                 extraFields.put("SOPInstanceUID", "SOPInstanceUID");
@@ -70,7 +73,7 @@ public class PrepareDatastoreTask implements Callable<MLDataset> {
                         }
 
                     } catch (InterruptedException | ExecutionException e) {
-                        e.printStackTrace(); // Ignore
+                        logger.error("Error preparing datastore task", e);
                     }
                 }));
 

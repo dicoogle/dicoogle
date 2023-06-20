@@ -34,12 +34,6 @@ public abstract class MLProviderInterface implements DicooglePlugin {
      */
     public abstract MLModel createModel();
 
-
-    /**
-     * This method deploys a model
-     */
-    public abstract void deployModel();
-
     /**
      * This method lists the models created on this provider.
      */
@@ -64,21 +58,6 @@ public abstract class MLProviderInterface implements DicooglePlugin {
     public abstract boolean stopTraining(String trainingTaskID);
 
     /**
-     * This method creates a endpoint that exposes a service
-     */
-    public abstract void createEndpoint();
-
-    /**
-     * This method lists all available endpoints
-     */
-    public abstract List<MLEndpoint> listEndpoints();
-
-    /**
-     * This method deletes a endpoint
-     */
-    public abstract void deleteEndpoint();
-
-    /**
      * This method deletes a model
      */
     public abstract void deleteModel();
@@ -87,14 +66,14 @@ public abstract class MLProviderInterface implements DicooglePlugin {
      * Order a prediction over a single object.
      * The object can be a series instance, a sop instance or a 2D/3D ROI.
      *
-     * @param predictionRequest object that defines this prediction request
+     * @param inferRequest object that defines this inference request
      */
-    public abstract Task<MLPrediction> makePrediction(MLPredictionRequest predictionRequest);
+    public abstract Task<MLInference> infer(MLInferenceRequest inferRequest);
 
     /**
-     * This method makes a bulk prediction using the selected model
+     * This method makes a bulk inference request using the selected model
      */
-    public abstract void makeBulkPrediction();
+    public abstract void batchInfer();
 
     public Set<ML_DATA_TYPE> getAcceptedDataTypes() {
         return acceptedDataTypes;

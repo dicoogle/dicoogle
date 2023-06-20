@@ -4,7 +4,7 @@ import pt.ua.dicoogle.sdk.datastructs.dim.DimLevel;
 
 import java.awt.image.BufferedImage;
 
-public class MLPredictionRequest {
+public class MLInferenceRequest {
 
     private boolean isWsi;
 
@@ -16,7 +16,7 @@ public class MLPredictionRequest {
 
     private String modelID;
 
-    public MLPredictionRequest(boolean isWsi, DimLevel level, String dimID, String modelID) {
+    public MLInferenceRequest(boolean isWsi, DimLevel level, String dimID, String modelID) {
         this.isWsi = isWsi;
         this.level = level;
         this.dimID = dimID;

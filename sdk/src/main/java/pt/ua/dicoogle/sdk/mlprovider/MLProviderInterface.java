@@ -75,6 +75,12 @@ public abstract class MLProviderInterface implements DicooglePlugin {
      */
     public abstract void batchInfer();
 
+    /**
+     * This method indicates if the service is available.
+     * @return true if the provider is ready to be used, false otherwise.
+     */
+    public abstract boolean isAvailable();
+
     public Set<ML_DATA_TYPE> getAcceptedDataTypes() {
         return acceptedDataTypes;
     }

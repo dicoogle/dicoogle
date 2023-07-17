@@ -17,6 +17,8 @@ import java.util.List;
 /**
  * This servlet lists all models from all providers.
  * Optionally, if a provider is specified, it will only list models from that provider.
+ * It checks the availability of each provider before adding it to the response.
+ * So it is possible that this method returns an empty list, if no provider is available, even though the plugins are installed.
  */
 public class ListAllModelsServlet extends HttpServlet {
 
@@ -29,15 +31,19 @@ public class ListAllModelsServlet extends HttpServlet {
 
         if(provider != null && !provider.isEmpty()){
             MLProviderInterface mlPlugin = PluginController.getInstance().getMachineLearningProviderByName(provider, true);
-            MLProvider p = new MLProvider(mlPlugin.getName());
-            p.setModels(mlPlugin.listModels());
-            providersResponse.add(p);
-        } else {
-            Iterable<MLProviderInterface> providers = PluginController.getInstance().getMLPlugins(true);
-            providers.forEach((mlPlugin) -> {
+            if(mlPlugin.isAvailable()){
                 MLProvider p = new MLProvider(mlPlugin.getName());
                 p.setModels(mlPlugin.listModels());
                 providersResponse.add(p);
+            }
+        } else {
+            Iterable<MLProviderInterface> providers = PluginController.getInstance().getMLPlugins(true);
+            providers.forEach((mlPlugin) -> {
+                if(mlPlugin.isAvailable()){
+                    MLProvider p = new MLProvider(mlPlugin.getName());
+                    p.setModels(mlPlugin.listModels());
+                    providersResponse.add(p);
+                }
             });
         }
 

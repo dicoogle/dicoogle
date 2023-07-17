@@ -226,7 +226,7 @@ public class PluginController {
     private void applySettings(PluginSet set, ConfigurationHolder holder) {
         // provide platform to each plugin interface
         final Collection<Collection<? extends DicooglePlugin>> all = Arrays.asList(set.getStoragePlugins(),
-                set.getIndexPlugins(), set.getQueryPlugins(), set.getJettyPlugins());
+                set.getIndexPlugins(), set.getQueryPlugins(), set.getJettyPlugins(), set.getMLPlugins());
         for (Collection<? extends DicooglePlugin> interfaces : all) {
             if (interfaces == null)
                 continue;

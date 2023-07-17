@@ -1,7 +1,6 @@
 package pt.ua.dicoogle.sdk.mlprovider;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.dcm4che2.io.DicomInputStream;
 import pt.ua.dicoogle.sdk.datastructs.dim.BulkAnnotation;
 
 import java.nio.file.Path;
@@ -9,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * This object maps predictions done by the AI algorithms.
+ * This object maps inferences done by the AI algorithms.
  * It can contain a set of metrics, annotations and a DICOM SEG file.
  */
 public class MLInference {

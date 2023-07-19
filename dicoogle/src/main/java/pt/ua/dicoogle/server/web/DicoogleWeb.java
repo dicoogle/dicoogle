@@ -222,11 +222,10 @@ public class DicoogleWeb {
                 // ml provider servlets
                 createServletHandler(new DatastoreServlet(), "/ml/datastore"),
                 createServletHandler(new InferServlet(), "/ml/infer/single"),
-                createServletHandler(new BulkInferServlet(), "/ml/infer/batch"),
+                createServletHandler(new BulkInferServlet(), "/ml/infer/bulk"),
                 createServletHandler(new TrainServlet(), "/ml/train"),
                 createServletHandler(new ListAllModelsServlet(), "/ml/model/list"),
                 createServletHandler(new ModelinfoServlet(), "/ml/model/info"),
-                createServletHandler(new ListAllModelsServlet(), "/ml/info"),
                 webpages};
 
         // setup the server

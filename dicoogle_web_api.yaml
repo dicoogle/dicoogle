@@ -19,7 +19,7 @@ info:
     <p>- <a href="https://bioinformatics-ua.github.io/dicoogle-api/javadoc/">Dicoogle Javadoc</a> </p>
     <p>- <a href="https://github.com/bioinformatics-ua/dicoogle-client-js">Dicoogle Javascript Client</a> </p>
     <br>
-  version: 3.1.0
+  version: 3.3.1
   title: Dicoogle
   contact:
     name: Support
@@ -47,6 +47,8 @@ tags:
     description: Management related services
   - name: Misc
     description: Misc related services
+  - name: Machine Learning
+    description: Machine learning services
 paths:
   /login:
     post:
@@ -1043,6 +1045,274 @@ paths:
                 $ref: "#/components/schemas/Version"
         "400":
           description: Invalid supplied parameters
+  /roi:
+    get:
+      tags:
+        - Misc
+      summary: Retrieve a rectangular region of a WSI
+      operationId: getImageROI
+      parameters:
+        - in: query
+          name: uid
+          description: SOPInstanceUID
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: x
+          description: left coordinate of the top left corner of the ROI in relation to the SOPInstanceUID provided
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: y
+          description: top coordinate of the top left corner of the ROI in relation to the SOPInstanceUID provided
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: width
+          description: Width of the ROI in pixels
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: height
+          description: Height of the ROI in pixels
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Invalid supplied parameters
+        "404":
+          description: SOPInstanceUID provided does not exist
+    post:
+      tags:
+        - Misc
+      summary: Retrieve an arbitrary region of a WSI
+      operationId: postImageROI
+      requestBody:
+        description: Describes the region to extract
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uid:
+                  type: string
+                  description: SOPInstanceUID
+                type:
+                  type: string
+                  enum: [RECTANGLE, ELLIPSE, POLYGON, POLYLINE, POINT]
+                points:
+                  type: array
+                  items:
+                    type: object
+                    description: A list of points that defines the shape to extract
+                    properties:
+                      x:
+                        type: number
+                      y:
+                        type: number
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Invalid supplied parameters
+        "404":
+          description: SOPInstanceUID provided does not exist
+  /ml/datastore:
+    post:
+      tags:
+        - Machine Learning
+      summary: Datastore endpoint for machine learning providers, used to upload images and labels to services
+      operationId: mlDatastore
+      requestBody:
+        description: Describes the data to upload to the provider
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DatastoreRequest'
+      responses:
+        '200':
+          description: The datastore request was successully processed and sent to the provider
+        '400':
+          description: Malformed request
+  /ml/infer/single:
+    post:
+      tags:
+        - Machine Learning
+      summary: Infer endpoint for a single object, image or DICOM object (series or sop instance). It has split functionality for WSI images.
+      operationId: mlInferSingle
+      parameters:
+        - in: query
+          name: provider
+          description: The name of the provider, e.g "MONAI"
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: modelID
+          description: Model identifier that will perform the inference
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: wsi
+          description: Flag to identify WSI requests. Defaults to false.
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - in: query
+          name: level
+          description:
+            The DIM level. Required if wsi is false
+          required: false
+          schema:
+            type: string
+            enum: [PATIENT, STUDY, SERIES, INSTANCE]
+        - in: query
+          name: uid
+          description: The unique identifier of the DIM object. Required if wsi is false
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The datastore request was successully processed and sent to the provider
+          content:
+            application/dicom:
+              schema:
+                type: string
+                format: binary
+                description: A DICOMSeg file
+            multipart/form-data:
+              schema:
+                type: object
+                properties:
+                  params:
+                    type: object
+                    description: Extra information the inference might return
+                  dicomseg:
+                    type: string
+                    format: binary
+                    description: DICOMSeg file containing the segmentations returned by the inference
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MLInference'
+        '400':
+          description: Malformed request
+  /ml/infer/bulk:
+    post:
+      tags:
+        - Machine Learning
+      summary: Infer endpoint for a bulk of objects, images or DICOM objects (series or sop instance)
+      operationId: mlInferBulk
+      responses:
+        '501':
+          description: Not implemented
+  /ml/train:
+    post:
+      tags:
+        - Machine Learning
+      summary: Request a training task
+      operationId: mlTrain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrainRequest'
+      responses:
+        '200':
+          description: The training request was successfully processed and sent to the provider
+        '400':
+          description: Malformed request
+    delete:
+      tags:
+        - Machine Learning
+      summary: Cancel a training
+      operationId: mlCancelTrain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrainRequest'
+      responses:
+        '200':
+          description: The training request was successfully cancelled
+        '400':
+          description: Malformed request
+  /ml/model/list:
+    get:
+      tags:
+        - Machine Learning
+      summary: Get a list of models from all providers or a specific one
+      operationId: mlModelList
+      parameters:
+        - in: query
+          name: provider
+          description: The name of the provider to request the models from. If specified, only models from this provider are returned.
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The list of providers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MLProvider'
+        '400':
+          description: Malformed request
+  /ml/model/info:
+    get:
+      tags:
+        - Machine Learning
+      summary: Get training info a model
+      operationId: mlModelInfo
+      parameters:
+        - in: query
+          name: provider
+          description: The name of the provider, e.g "MONAI"
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: modelID
+          description: Model identifier
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The training information of the specified model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MLModelTrainInfo'
+        '400':
+          description: Malformed request
+
 components:
   securitySchemes:
     dicoogle_auth:
@@ -1454,3 +1724,83 @@ components:
       type: array
       items:
         type: string
+    DatastoreRequest:
+      type: object
+      properties:
+        provider:
+          type: string
+          description: Provider name
+          example: MONAI
+        dataType:
+          type: string
+          enum: [CSV, IMAGE, DICOM]
+        dimLevel:
+          type: string
+          enum: [PATIENT, STUDY, SERIES, INSTANCE]
+        uids:
+          type: array
+          items:
+            type: string
+        dataset:
+          type: object
+          description: A map where keys represent SOPInstances and the values are annotations to upload
+    TrainRequest:
+      type: object
+      properties:
+        provider:
+          type: string
+          description: Provider name
+          example: MONAI
+        modelID:
+          type: string
+          description: Model identifier
+          example: spleen_model
+    MLInference:
+      type: object
+      properties:
+        metrics:
+          type: object
+          description: A key-value dictionary of extra metrics the inference might return
+        version:
+          type: string
+          description: Version of the model that generated this inference
+        annotations:
+          type: array
+          description: A list of annotations
+          items:
+            type: object
+    MLProvider:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of this provider
+        models:
+          type: array
+          items:
+            type: object
+          description: A list of models that belongs to this provider
+        datasets:
+          type: array
+          items:
+            type: object
+          description: A list of datasets that belongs to this provider
+    MLModelTrainInfo:
+      type: object
+      properties:
+        modifiedTime:
+          type: string
+        startTime:
+          type: string
+        currentEpoch:
+          type: number
+        totalEpochs:
+          type: number
+        bestMetric:
+          type: number
+          description: Numerical value of the best metric identifier by the best metric key.
+        bestMetricKey:
+          type: string
+        metrics:
+          type: object
+          description: A key-value containing the training metrics of the model, such as accuracy, precision, f1-score, etc.

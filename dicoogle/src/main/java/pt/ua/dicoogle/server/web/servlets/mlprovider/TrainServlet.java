@@ -16,6 +16,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+/**
+ * This servlet implements the request training and cancel training endpoints.
+ * To train a model, labels/annotations must first be uploaded to the provider.
+ */
 public class TrainServlet extends HttpServlet {
 
     private static final Logger log = LoggerFactory.getLogger(TrainServlet.class);

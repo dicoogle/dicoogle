@@ -13,6 +13,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+/**
+ * This servlet returns a detailed list of metrics described in @see pt.ua.dicoogle.sdk.mlprovider.MLModelTrainInfo.
+ * Usually it should only be available when a model has already been trained at least once.
+ * Model is identified by the provider and model ID.
+ */
 public class ModelinfoServlet extends HttpServlet {
 
     @Override

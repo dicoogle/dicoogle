@@ -33,9 +33,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
-public class MakePredictionServlet extends HttpServlet {
+public class InferServlet extends HttpServlet {
 
-    private static final Logger log = LoggerFactory.getLogger(MakePredictionServlet.class);
+    private static final Logger log = LoggerFactory.getLogger(InferServlet.class);
 
     private final ROIExtractor roiExtractor;
 
@@ -45,7 +45,7 @@ public class MakePredictionServlet extends HttpServlet {
      * Creates ROI servlet servlet.
      *
      */
-    public MakePredictionServlet() {
+    public InferServlet() {
         this.wsiCache = WSICache.getInstance();
         this.roiExtractor = new ROIExtractor();
     }

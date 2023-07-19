@@ -48,6 +48,8 @@ public class PrepareDatastoreTask implements Callable<MLDataset> {
             case DICOM:
                 return new MLDicomDataset(request.getDimLevel(), request.getUids());
             case IMAGE: // Not operational
+                throw new UnsupportedOperationException("Datastore requests for image objects is not supported");
+                /*
                 HashMap<String, String> extraFields = new HashMap<String, String>();
 
                 extraFields.put("SOPInstanceUID", "SOPInstanceUID");
@@ -76,8 +78,8 @@ public class PrepareDatastoreTask implements Callable<MLDataset> {
                         logger.error("Error preparing datastore task", e);
                     }
                 }));
-
                 return mlDataset;
+                */
             default:
                 return null;
         }

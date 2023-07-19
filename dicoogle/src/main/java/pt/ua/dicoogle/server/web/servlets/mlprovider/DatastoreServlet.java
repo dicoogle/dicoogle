@@ -32,10 +32,6 @@ public class DatastoreServlet extends HttpServlet {
         DatastoreRequest datasetRequest;
         try {
             datasetRequest = mapper.readValue(dataString, DatastoreRequest.class);
-            /*
-            if(PluginController.getInstance().getMachineLearningProviderByName(datasetRequest.getProviderName(), true) == null){
-                resp.sendError(404, "The requested provider does not exist");
-            }*/
             PluginController.getInstance().datastore(datasetRequest);
         } catch (Exception e) {
             log.error("Error parsing json string", e);

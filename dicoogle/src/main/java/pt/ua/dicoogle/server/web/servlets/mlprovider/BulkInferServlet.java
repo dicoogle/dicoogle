@@ -3,6 +3,7 @@ package pt.ua.dicoogle.server.web.servlets.mlprovider;
 import org.restlet.data.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pt.ua.dicoogle.server.web.utils.ResponseUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -16,8 +17,6 @@ public class BulkInferServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
-        resp.sendError(Status.SERVER_ERROR_NOT_IMPLEMENTED.getCode(), "Endpoint not implemented");
-
+        ResponseUtil.sendError(resp, Status.SERVER_ERROR_NOT_IMPLEMENTED.getCode(), "Endpoint not implemented");
     }
 }

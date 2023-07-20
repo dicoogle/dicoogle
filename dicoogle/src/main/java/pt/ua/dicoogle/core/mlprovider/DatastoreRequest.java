@@ -2,7 +2,7 @@ package pt.ua.dicoogle.core.mlprovider;
 
 import pt.ua.dicoogle.sdk.datastructs.dim.BulkAnnotation;
 import pt.ua.dicoogle.sdk.datastructs.dim.DimLevel;
-import pt.ua.dicoogle.sdk.mlprovider.ML_DATA_TYPE;
+import pt.ua.dicoogle.sdk.mlprovider.MLDataType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +24,7 @@ public class DatastoreRequest {
     /**
      * The type of dataset to upload
      */
-    private ML_DATA_TYPE dataType;
+    private MLDataType dataType;
 
     private DimLevel dimLevel;
 
@@ -44,11 +44,11 @@ public class DatastoreRequest {
         this.provider = provider;
     }
 
-    public ML_DATA_TYPE getDataType() {
+    public MLDataType getDataType() {
         return dataType;
     }
 
-    public void setDataType(ML_DATA_TYPE dataType) {
+    public void setDataType(MLDataType dataType) {
         this.dataType = dataType;
     }
 

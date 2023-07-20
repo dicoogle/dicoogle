@@ -3,10 +3,13 @@ package pt.ua.dicoogle.server.web.servlets.mlprovider;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
+import org.json.JSONException;
+import org.restlet.data.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ua.dicoogle.core.mlprovider.DatastoreRequest;
 import pt.ua.dicoogle.plugins.PluginController;
+import pt.ua.dicoogle.server.web.utils.ResponseUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -35,7 +38,7 @@ public class DatastoreServlet extends HttpServlet {
             PluginController.getInstance().datastore(datasetRequest);
         } catch (Exception e) {
             log.error("Error parsing json string", e);
-            resp.sendError(404, "Malformed request");
+            ResponseUtil.sendError(resp, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Malformed request");
         }
     }
 }

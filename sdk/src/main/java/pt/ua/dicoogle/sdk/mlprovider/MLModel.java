@@ -1,8 +1,9 @@
 package pt.ua.dicoogle.sdk.mlprovider;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class MLModel {
+public class MLModel implements Serializable {
 
     private String name;
 
@@ -14,7 +15,7 @@ public class MLModel {
 
     private Date creationDate;
 
-    private ML_DATA_TYPE dataType;
+    private MLDataType dataType;
 
     private Set<MLlabel> labels;
 
@@ -23,7 +24,7 @@ public class MLModel {
         this.id = id;
         this.type = "";
         labels = new TreeSet<>();
-        dataType = ML_DATA_TYPE.IMAGE;
+        dataType = MLDataType.IMAGE;
         creationDate = new Date();
     }
 
@@ -67,11 +68,11 @@ public class MLModel {
         this.creationDate = creationDate;
     }
 
-    public ML_DATA_TYPE getDataType() {
+    public MLDataType getDataType() {
         return dataType;
     }
 
-    public void setDataType(ML_DATA_TYPE dataType) {
+    public void setDataType(MLDataType dataType) {
         this.dataType = dataType;
     }
 

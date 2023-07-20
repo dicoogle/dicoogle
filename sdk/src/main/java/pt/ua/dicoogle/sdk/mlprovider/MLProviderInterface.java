@@ -9,15 +9,16 @@ import java.util.Set;
 /**
  * Interface to define Machine Learning providers.
  * A machine learning provider can be a remote service, hosted on the cloud, or a simple remote/local server
- * that has installed machine learning algorithms for problem solving.
+ * that has machine learning algorithms installed for problem solving.
  * Machine learning providers can work with either image or csv datasets.
- * The purpose of this interface is to provide a way to develop plugins to integrate with services such as Google's Vertex API or Amazon's SageMaker API.
+ * The purpose of this interface is to provide a way
+ * to integrate with services such as Google's Vertex API or Amazon's SageMaker API.
  *
  * @author Rui Jesus
  */
 public abstract class MLProviderInterface implements DicooglePlugin {
 
-    protected Set<ML_DATA_TYPE> acceptedDataTypes;
+    protected Set<MLDataType> acceptedDataTypes;
 
     /**
      * This method uploads data to the provider.
@@ -81,11 +82,7 @@ public abstract class MLProviderInterface implements DicooglePlugin {
      */
     public abstract boolean isAvailable();
 
-    public Set<ML_DATA_TYPE> getAcceptedDataTypes() {
+    public Set<MLDataType> getAcceptedDataTypes() {
         return acceptedDataTypes;
-    }
-
-    public void setAcceptedDataTypes(Set<ML_DATA_TYPE> acceptedDataTypes) {
-        this.acceptedDataTypes = acceptedDataTypes;
     }
 }

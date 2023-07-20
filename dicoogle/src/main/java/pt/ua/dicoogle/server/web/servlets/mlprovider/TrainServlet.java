@@ -1,13 +1,16 @@
 package pt.ua.dicoogle.server.web.servlets.mlprovider;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
+import org.restlet.data.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ua.dicoogle.core.mlprovider.TrainRequest;
 import pt.ua.dicoogle.plugins.PluginController;
 import pt.ua.dicoogle.sdk.mlprovider.MLProviderInterface;
 import pt.ua.dicoogle.sdk.mlprovider.MLTrainTask;
+import pt.ua.dicoogle.server.web.utils.ResponseUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -29,7 +32,7 @@ public class TrainServlet extends HttpServlet {
 
         String dataString = IOUtils.toString(req.getReader());
         if (dataString == null) {
-            resp.sendError(404, "Empty POST body");
+            ResponseUtil.sendError(resp, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Empty POST body");
             return;
         }
 
@@ -40,17 +43,17 @@ public class TrainServlet extends HttpServlet {
             MLProviderInterface mlplugin = PluginController.getInstance().getMachineLearningProviderByName(trainRequest.getProvider(), true);
             if(mlplugin == null){
                 log.error("A provider with the provided name does not exist");
-                resp.sendError(404, "Malformed request");
+                ResponseUtil.sendError(resp, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Malformed request");
             } else {
                 MLTrainTask trainTask = mlplugin.trainModel(trainRequest.getModelID());
                 switch (trainTask.getStatus()){
                     case BUSY:
                         log.error("Could not create training task, service is busy");
-                        resp.sendError(405, "Could not create training task, service is busy");
+                        ResponseUtil.sendError(resp, Status.CLIENT_ERROR_METHOD_NOT_ALLOWED.getCode(), "Could not create training task, service is busy");
                         break;
                     case REJECTED:
                         log.error("Could not create training task, request is malformed");
-                        resp.sendError(404, "Could not create training task, service is busy");
+                        ResponseUtil.sendError(resp, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Could not create training task, service is busy");
                         break;
                     default:
                         resp.setContentType("application/json");
@@ -60,18 +63,18 @@ public class TrainServlet extends HttpServlet {
                         out.flush();
                 }
             }
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
             log.error("Error parsing json string", e);
-            resp.sendError(404, "Malformed request");
+            ResponseUtil.sendError(resp, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Malformed request");
         }
     }
 
     @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
         String dataString = IOUtils.toString(req.getReader());
         if (dataString == null) {
-            resp.sendError(404, "Empty POST body");
+            ResponseUtil.sendError(resp, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Empty POST body");
             return;
         }
 
@@ -82,18 +85,18 @@ public class TrainServlet extends HttpServlet {
             MLProviderInterface mlplugin = PluginController.getInstance().getMachineLearningProviderByName(trainRequest.getProvider(), true);
             if(mlplugin == null){
                 log.error("A provider with the provided name does not exist");
-                resp.sendError(404, "Malformed request");
+                ResponseUtil.sendError(resp, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Malformed request");
             } else {
-                boolean stopped = mlplugin.stopTraining("");
+                boolean stopped = mlplugin.stopTraining(trainRequest.getTrainingTaskID());
 
                 if(!stopped){
                     log.error("Could not stop training task");
-                    resp.sendError(404, "Could not stop training task");
+                    ResponseUtil.sendError(resp, Status.SERVER_ERROR_SERVICE_UNAVAILABLE.getCode(), "Could not stop training task");
                 }
             }
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
             log.error("Error parsing json string", e);
-            resp.sendError(404, "Malformed request");
+            ResponseUtil.sendError(resp, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Malformed request");
         }
     }
 

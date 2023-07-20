@@ -19,6 +19,7 @@ import pt.ua.dicoogle.sdk.mlprovider.MLInference;
 import pt.ua.dicoogle.sdk.mlprovider.MLInferenceRequest;
 import pt.ua.dicoogle.sdk.task.Task;
 import pt.ua.dicoogle.server.web.dicom.ROIExtractor;
+import pt.ua.dicoogle.server.web.utils.ResponseUtil;
 import pt.ua.dicoogle.server.web.utils.cache.WSICache;
 
 import javax.servlet.ServletException;
@@ -61,22 +62,22 @@ public class InferServlet extends HttpServlet {
         // Validate the common attributes between WSI and non-WSI requests
 
         if(!body.has("level")){
-            response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "DIM level provided was invalid");
+            ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "DIM level provided was invalid");
             return;
         }
 
         if(!body.has("uid")){
-            response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "DIM UID provided was invalid");
+            ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "DIM UID provided was invalid");
             return;
         }
 
         if(!body.has("provider")){
-            response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Provider provided was invalid");
+            ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Provider provided was invalid");
             return;
         }
 
         if(!body.has("modelID")){
-            response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Model identifier was invalid");
+            ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Model identifier was invalid");
             return;
         }
 
@@ -91,12 +92,12 @@ public class InferServlet extends HttpServlet {
         if(wsi){
 
             if(!body.has("points") || !body.has("type") || !body.has("baseUID")){
-                response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Insufficient data to build request");
+                ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Insufficient data to build request");
                 return;
             }
 
             if(level != DimLevel.INSTANCE){
-                response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Only Instance level is supported with WSI");
+                ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Only Instance level is supported with WSI");
                 return;
             }
 
@@ -111,7 +112,7 @@ public class InferServlet extends HttpServlet {
         }
 
         if(task == null){
-            response.sendError(Status.SERVER_ERROR_INTERNAL.getCode(), "Could not build prediction request");
+            ResponseUtil.sendError(response, Status.SERVER_ERROR_INTERNAL.getCode(), "Could not build prediction request");
             return;
         }
 
@@ -139,7 +140,7 @@ public class InferServlet extends HttpServlet {
 
                         if(prediction == null){
                             log.error("Provider returned null prediction");
-                            response.sendError(Status.SERVER_ERROR_INTERNAL.getCode(), "Could not make prediction");
+                            ResponseUtil.sendError(response, Status.SERVER_ERROR_INTERNAL.getCode(), "Could not make prediction");
                             return;
                         }
 
@@ -163,7 +164,7 @@ public class InferServlet extends HttpServlet {
                     } catch (InterruptedException | ExecutionException e) {
                         log.error("Could not make prediction", e);
                         try {
-                            response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Could not make prediction");
+                            ResponseUtil.sendError(response, Status.SERVER_ERROR_INTERNAL.getCode(), "Could not make prediction");
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
                         }
@@ -189,7 +190,7 @@ public class InferServlet extends HttpServlet {
 
                     if(prediction == null){
                         log.error("Provider returned null prediction");
-                        response.sendError(Status.SERVER_ERROR_INTERNAL.getCode(), "Could not make prediction");
+                        ResponseUtil.sendError(response, Status.SERVER_ERROR_INTERNAL.getCode(), "Could not make prediction");
                         return;
                     }
 
@@ -251,7 +252,7 @@ public class InferServlet extends HttpServlet {
                 } catch (InterruptedException | ExecutionException e) {
                     log.error("Could not make prediction", e);
                     try {
-                        response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Could not make prediction");
+                        ResponseUtil.sendError(response, Status.SERVER_ERROR_INTERNAL.getCode(), "Could not make prediction");
                     } catch (IOException ex) {
                         throw new RuntimeException(ex);
                     }

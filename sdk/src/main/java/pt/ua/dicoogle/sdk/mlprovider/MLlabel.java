@@ -1,5 +1,6 @@
 package pt.ua.dicoogle.sdk.mlprovider;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -8,7 +9,7 @@ import java.util.Objects;
  * The label definition proposed here follows the DICOM standard guidelines for segmentation objects.
  * @see C.8.20.2 Segmentation Image Module for more information.
  */
-public class MLlabel implements Comparable<MLlabel>{
+public class MLlabel implements Comparable<MLlabel>, Serializable {
 
     public enum CodingSchemeDesignator{
         DCM, // DICOM scheme code designator

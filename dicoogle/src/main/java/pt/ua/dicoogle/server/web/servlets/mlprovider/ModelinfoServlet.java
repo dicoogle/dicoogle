@@ -5,6 +5,7 @@ import org.restlet.data.Status;
 import pt.ua.dicoogle.plugins.PluginController;
 import pt.ua.dicoogle.sdk.mlprovider.MLModelTrainInfo;
 import pt.ua.dicoogle.sdk.mlprovider.MLProviderInterface;
+import pt.ua.dicoogle.server.web.utils.ResponseUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -28,18 +29,18 @@ public class ModelinfoServlet extends HttpServlet {
         String modelID = request.getParameter("modelID");
 
         if(provider == null || provider.isEmpty()){
-            response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Provider was not specified");
+            ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Provider was not specified");
             return;
         }
 
         if(modelID == null || modelID.isEmpty()){
-            response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Model was not specified");
+            ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Model was not specified");
             return;
         }
 
         MLProviderInterface mlPlugin = PluginController.getInstance().getMachineLearningProviderByName(provider, true);
         if(mlPlugin == null){
-            response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Provider not found");
+            ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Provider not found");
             return;
         }
 

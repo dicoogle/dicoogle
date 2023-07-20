@@ -77,7 +77,7 @@ public class ArchiveImpl implements ServerSettings.Archive {
     @JsonProperty("watch-directory")
     private String watchDirectory;
 
-    @JsonProperty("support-wsi")
+    @JsonProperty(value = "support-wsi", defaultValue = "false")
     private boolean supportWSI;
 
     @JsonProperty(value = "encrypt-users-file", defaultValue = "false")

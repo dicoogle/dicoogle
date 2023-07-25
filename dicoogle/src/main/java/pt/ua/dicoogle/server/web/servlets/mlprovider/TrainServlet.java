@@ -1,3 +1,21 @@
+/**
+ * Copyright (C) 2014  Universidade de Aveiro, DETI/IEETA, Bioinformatics Group - http://bioinformatics.ua.pt/
+ *
+ * This file is part of Dicoogle/dicoogle.
+ *
+ * Dicoogle/dicoogle is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Dicoogle/dicoogle is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Dicoogle.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package pt.ua.dicoogle.server.web.servlets.mlprovider;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,13 +60,13 @@ public class TrainServlet extends HttpServlet {
             trainRequest = mapper.readValue(dataString, TrainRequest.class);
             MLProviderInterface mlplugin = PluginController.getInstance().getMachineLearningProviderByName(trainRequest.getProvider(), true);
             if(mlplugin == null){
-                log.error("A provider with the provided name does not exist");
+                log.warn("Request for non-existent ML provider `{}`", trainRequest.getProvider());
                 ResponseUtil.sendError(resp, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Malformed request");
             } else {
                 MLTrainTask trainTask = mlplugin.trainModel(trainRequest.getModelID());
                 switch (trainTask.getStatus()){
                     case BUSY:
-                        log.error("Could not create training task, service is busy");
+                        log.warn("Could not create training task, service is busy");
                         ResponseUtil.sendError(resp, Status.CLIENT_ERROR_METHOD_NOT_ALLOWED.getCode(), "Could not create training task, service is busy");
                         break;
                     case REJECTED:
@@ -57,10 +75,9 @@ public class TrainServlet extends HttpServlet {
                         break;
                     default:
                         resp.setContentType("application/json");
-                        PrintWriter out = resp.getWriter();
-                        mapper.writeValue(out, trainTask);
-                        out.close();
-                        out.flush();
+                        try (PrintWriter out = resp.getWriter()) {
+                            mapper.writeValue(out, trainTask);
+                        }
                 }
             }
         } catch (JsonProcessingException e) {

@@ -1,3 +1,21 @@
+/**
+ * Copyright (C) 2014  Universidade de Aveiro, DETI/IEETA, Bioinformatics Group - http://bioinformatics.ua.pt/
+ *
+ * This file is part of Dicoogle/dicoogle.
+ *
+ * Dicoogle/dicoogle is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Dicoogle/dicoogle is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Dicoogle.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package pt.ua.dicoogle.server.web.utils.cache;
 
 import com.google.common.cache.CacheBuilder;
@@ -67,8 +85,7 @@ public class WSICache extends MemoryCache<DicomMetaData>{
 
             URI uri = retrieveURI(sopInstanceUID);
             if(uri == null){
-                logger.info("URI == null");
-                throw new InvalidParameterException("Could not find the desired URI");
+                throw new IllegalArgumentException("Could not find the desired URI");
             }
 
             Attributes fmi;
@@ -80,14 +97,7 @@ public class WSICache extends MemoryCache<DicomMetaData>{
                 throw new InvalidParameterException("Could not find the desired URI");
             }
 
-            String filePath = sis.getURI().getPath();
-            if (filePath.endsWith(EXTENSION_GZIP)){
-                InputStream inStream = new GZIPInputStream(new BufferedInputStream(new FileInputStream(filePath), BUFFER_SIZE));
-                dis = new DicomInputStream(inStream);
-            }
-            else {
-                dis = new DicomInputStream(new File(filePath));
-            }
+            dis = new DicomInputStream(sis.getInputStream());
 
             dis.setIncludeBulkData(DicomInputStream.IncludeBulkData.URI);
             dis.setBulkDataDescriptor(BulkDataDescriptor.PIXELDATA);
@@ -99,13 +109,17 @@ public class WSICache extends MemoryCache<DicomMetaData>{
     }
 
     /**
-     * Helper method to retrieve the URI from SOPInstanceUID in lucene.
+     * Helper method to retrieve the URI to
+     * the file with the given SOP Instance UID
+     * from the archive's DIM provider.
+
      *
      * @param sop SopInstanceUID
      * @return uri of the SopInstance
      */
     private URI retrieveURI(String sop){
-        String query = "SOPInstanceUID:" + sop;
+        String query = "SOPInstanceUID:\"" + sop + '"';
+
 
         Iterable<SearchResult> results;
         try {

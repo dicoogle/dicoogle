@@ -37,13 +37,21 @@ public class MLModel implements Serializable {
 
     private Set<MLlabel> labels;
 
+    private List<MLModelParameter> parameters;
+
     public MLModel(String name, String id) {
         this.name = name;
         this.id = id;
         this.type = "";
         labels = new TreeSet<>();
+        parameters = new ArrayList<>();
         dataType = MLDataType.IMAGE;
         creationDate = new Date();
+    }
+
+    public MLModel(String name, String id, List<MLModelParameter> parameters){
+        this(name, id);
+        this.parameters = parameters;
     }
 
     public String getName() {
@@ -100,6 +108,14 @@ public class MLModel implements Serializable {
 
     public void setLabels(Set<MLlabel> labels) {
         this.labels = labels;
+    }
+
+    public List<MLModelParameter> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(List<MLModelParameter> parameters) {
+        this.parameters = parameters;
     }
 
     public void removeLabel(MLlabel label){

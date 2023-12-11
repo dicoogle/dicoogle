@@ -48,7 +48,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Files;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
@@ -73,12 +75,10 @@ public class InferServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         String jsonString = IOUtils.toString(request.getReader());
-
         ObjectMapper mapper = new ObjectMapper();
         JsonNode body = mapper.readTree(jsonString);
 
         // Validate the common attributes between WSI and non-WSI requests
-
         if(!body.has("level")){
             ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "DIM level provided was invalid");
             return;
@@ -105,6 +105,12 @@ public class InferServlet extends HttpServlet {
         DimLevel level = DimLevel.valueOf(body.get("level").asText().toUpperCase());
         String dimUID = body.get("uid").asText();
 
+        Map<String, Object> parameters;
+        if(body.has("parameters"))
+            parameters = mapper.convertValue(body.get("parameters"), Map.class);
+        else
+            parameters = new HashMap<>();
+
         Task<MLInference> task;
 
         if(wsi){
@@ -123,10 +129,10 @@ public class InferServlet extends HttpServlet {
 
             BulkAnnotation.AnnotationType type = BulkAnnotation.AnnotationType.valueOf(body.get("type").asText());
             List<Point2D> points = mapper.readValue(body.get("points").toString(), new TypeReference<List<Point2D>>(){});
-            task = sendWSIRequest(provider, modelID, baseSopInstanceUID, dimUID, type, points, response);
+            task = sendWSIRequest(provider, modelID, baseSopInstanceUID, dimUID, type, points, parameters, response);
 
         } else {
-            task = sendRequest(provider, modelID, level, dimUID, response);
+            task = sendRequest(provider, modelID, level, dimUID, parameters, response);
         }
 
         if(task == null){
@@ -138,10 +144,12 @@ public class InferServlet extends HttpServlet {
     }
 
     private Task<MLInference> sendWSIRequest(String provider, String modelID, String baseSopInstanceUID, String uid,
-                                             BulkAnnotation.AnnotationType roiType, List<Point2D> roi, HttpServletResponse response){
+                                             BulkAnnotation.AnnotationType roiType, List<Point2D> roi,
+                                             Map<String, Object> parameters, HttpServletResponse response){
 
         ObjectMapper mapper = new ObjectMapper();
         MLInferenceRequest predictionRequest = new MLInferenceRequest(true, DimLevel.INSTANCE, uid, modelID);
+        predictionRequest.setParameters(parameters);
         BulkAnnotation annotation = new BulkAnnotation();
         annotation.setPoints(roi);
         annotation.setAnnotationType(roiType);
@@ -197,9 +205,11 @@ public class InferServlet extends HttpServlet {
         }
     }
 
-    private Task<MLInference> sendRequest(String provider, String modelID, DimLevel level, String dimUID, HttpServletResponse response){
+    private Task<MLInference> sendRequest(String provider, String modelID, DimLevel level, String dimUID, Map<String,
+            Object> parameters, HttpServletResponse response){
         ObjectMapper mapper = new ObjectMapper();
         MLInferenceRequest predictionRequest = new MLInferenceRequest(false, level, dimUID, modelID);
+        predictionRequest.setParameters(parameters);
         Task<MLInference> task = PluginController.getInstance().infer(provider, predictionRequest);
         if(task != null){
             task.onCompletion(() -> {

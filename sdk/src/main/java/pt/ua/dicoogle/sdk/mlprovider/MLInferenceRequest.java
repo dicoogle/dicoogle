@@ -21,7 +21,12 @@ package pt.ua.dicoogle.sdk.mlprovider;
 import pt.ua.dicoogle.sdk.datastructs.dim.DimLevel;
 
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
+import java.util.Map;
 
+/**
+ * This object is used in the infer servlet to serialize the incoming JSON objects.
+ */
 public class MLInferenceRequest {
 
     private boolean isWsi;
@@ -34,11 +39,14 @@ public class MLInferenceRequest {
 
     private String modelID;
 
+    private Map<String, Object> parameters;
+
     public MLInferenceRequest(boolean isWsi, DimLevel level, String dimID, String modelID) {
         this.isWsi = isWsi;
         this.level = level;
         this.dimID = dimID;
         this.modelID = modelID;
+        parameters = new HashMap<>();
     }
 
     public boolean isWsi() {
@@ -84,4 +92,13 @@ public class MLInferenceRequest {
     public void setModelID(String modelID) {
         this.modelID = modelID;
     }
+
+    public Map<String, Object> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(Map<String, Object> parameters) {
+        this.parameters = parameters;
+    }
+
 }

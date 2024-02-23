@@ -18,25 +18,32 @@
  */
 package pt.ua.dicoogle.sdk.mlprovider;
 
-import java.net.URI;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * An ML dataset of image objects.
- * Optionally an array of labels can be given to create a labelled dataset.
+ * Images are defined by {@see ImageEntry} objects and must have a label associated.
  */
 public class MLImageDataset extends MLDataset {
 
-    private HashMap<URI, List<MLlabel>> dataset;
+    private HashMap<ImageEntry, MLlabel> dataset;
 
     private boolean multiClass;
 
-    public HashMap<URI, List<MLlabel>> getDataset() {
+    public MLImageDataset() {
+        super("name", MLDataType.IMAGE);
+    }
+
+    public MLImageDataset(HashMap<ImageEntry, MLlabel> dataset) {
+        super("", MLDataType.IMAGE);
+        this.dataset = dataset;
+    }
+
+    public HashMap<ImageEntry, MLlabel> getDataset() {
         return dataset;
     }
 
-    public void setDataset(HashMap<URI, List<MLlabel>> dataset) {
+    public void setDataset(HashMap<ImageEntry, MLlabel> dataset) {
         this.dataset = dataset;
     }
 

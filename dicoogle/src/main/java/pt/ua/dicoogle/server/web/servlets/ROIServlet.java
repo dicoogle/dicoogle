@@ -78,21 +78,18 @@ public class ROIServlet extends HttpServlet {
             return;
         }
 
-        BulkAnnotation annotation;
+        List<Point2D> annotation;
+        BulkAnnotation.AnnotationType annotationType = BulkAnnotation.AnnotationType.RECTANGLE;
         try{
             int nX = Integer.parseInt(x);
             int nY = Integer.parseInt(y);
             int nWidth = Integer.parseInt(width);
             int nHeight = Integer.parseInt(height);
-            annotation = new BulkAnnotation();
             Point2D tl = new Point2D(nX, nY);
             Point2D tr = new Point2D(nX + nWidth, nY);
             Point2D bl = new Point2D(nX, nY + nHeight);
             Point2D br = new Point2D(nX + nWidth, nY + nHeight);
-            List<Point2D> points = new ArrayList<>();
-            points.add(tl); points.add(tr); points.add(bl); points.add(br);
-            annotation.setPoints(points);
-            annotation.setAnnotationType(BulkAnnotation.AnnotationType.RECTANGLE);
+            annotation = Arrays.asList(tl, tr, bl, br);
         } catch (NumberFormatException e){
             response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "ROI provided was invalid");
             return;
@@ -100,7 +97,7 @@ public class ROIServlet extends HttpServlet {
 
         DicomMetaData metaData = getDicomMetadata(sopInstanceUID);
 
-        BufferedImage bi = roiExtractor.extractROI(metaData, annotation);
+        BufferedImage bi = roiExtractor.extractROI(metaData, annotationType, annotation);
 
         if(bi != null){
             response.setContentType("image/jpeg");
@@ -136,13 +133,9 @@ public class ROIServlet extends HttpServlet {
         String type = body.get("type").asText();
         List<Point2D> points = mapper.readValue(body.get("points").toString(), new TypeReference<List<Point2D>>(){});
 
-        BulkAnnotation annotation = new BulkAnnotation();
-        annotation.setPoints(points);
-        annotation.setAnnotationType(BulkAnnotation.AnnotationType.valueOf(type));
-
         DicomMetaData dicomMetaData = this.getDicomMetadata(sopInstanceUID);
 
-        BufferedImage bi = roiExtractor.extractROI(dicomMetaData, annotation);
+        BufferedImage bi = roiExtractor.extractROI(dicomMetaData, BulkAnnotation.AnnotationType.valueOf(type), points);
 
         if(bi != null){
             response.setContentType("image/jpeg");

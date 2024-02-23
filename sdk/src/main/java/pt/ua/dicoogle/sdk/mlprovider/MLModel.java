@@ -39,6 +39,12 @@ public class MLModel implements Serializable {
 
     private List<MLModelParameter> parameters;
 
+    /**
+     * A number between 1 and n that specifies the magnification level of the images this model supports.
+     * It is only useful in pathology where algorithms might be trained on lower resolution levels of the pyramid.
+     */
+    private int processMagnification;
+
     public MLModel(String name, String id) {
         this.name = name;
         this.id = id;
@@ -47,6 +53,7 @@ public class MLModel implements Serializable {
         parameters = new ArrayList<>();
         dataType = MLDataType.IMAGE;
         creationDate = new Date();
+        processMagnification = 0;
     }
 
     public MLModel(String name, String id, List<MLModelParameter> parameters){
@@ -124,5 +131,13 @@ public class MLModel implements Serializable {
 
     public void addLabel(MLlabel label){
         this.labels.add(label);
+    }
+
+    public int getProcessMagnification() {
+        return processMagnification;
+    }
+
+    public void setProcessMagnification(int processMagnification) {
+        this.processMagnification = processMagnification;
     }
 }

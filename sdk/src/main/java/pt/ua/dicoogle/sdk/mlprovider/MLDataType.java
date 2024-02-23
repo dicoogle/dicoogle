@@ -18,6 +18,23 @@
  */
 package pt.ua.dicoogle.sdk.mlprovider;
 
+/**
+ * This enum maps the supported data types used in the MLProviderInterface.
+ * Data in this context always refers to data objects, labelled or unlabelled, used throughout the ML pipeline,
+ * for example in training or inference jobs.
+ * The data types listed here are not exhaustive, meaning future releases and iterations might add or remove new data types.
+ */
 public enum MLDataType {
-    CSV, IMAGE, DICOM
+    /**
+     * CSV data objects refers to data that can be mapped in a tabular format.
+     */
+    CSV,
+    /**
+     * IMAGE data objects refer explicitly to pixel data objects.
+     */
+    IMAGE,
+    /**
+     * DICOM data objects refer to one: Study, Series or Instance.
+     */
+    DICOM
 }

@@ -27,6 +27,7 @@ import pt.ua.dicoogle.sdk.datastructs.dim.BulkAnnotation;
 import pt.ua.dicoogle.sdk.datastructs.dim.Point2D;
 import pt.ua.dicoogle.sdk.datastructs.wsi.WSIFrame;
 import pt.ua.dicoogle.server.web.utils.cache.WSICache;
+import sun.reflect.annotation.AnnotationType;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -36,6 +37,8 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
 import java.util.List;
+
+import static pt.ua.dicoogle.sdk.datastructs.dim.BulkAnnotation.AnnotationType.*;
 
 public class ROIExtractor {
 
@@ -49,7 +52,7 @@ public class ROIExtractor {
         this.wsiCache = WSICache.getInstance();
     }
 
-    public BufferedImage extractROI(String sopInstanceUID, BulkAnnotation bulkAnnotation) {
+    public BufferedImage extractROI(String sopInstanceUID, BulkAnnotation.AnnotationType type, List<Point2D> annotation) {
         DicomMetaData metaData;
         try {
             metaData = getDicomMetadata(sopInstanceUID);
@@ -57,10 +60,10 @@ public class ROIExtractor {
             logger.error("Could not extract metadata", e);
             return null;
         }
-        return extractROI(metaData, bulkAnnotation);
+        return extractROI(metaData, type, annotation);
     }
 
-    public BufferedImage extractROI(DicomMetaData dicomMetaData, BulkAnnotation bulkAnnotation) {
+    public BufferedImage extractROI(DicomMetaData dicomMetaData, BulkAnnotation.AnnotationType type, List<Point2D> annotation) {
 
         ImageReader imageReader = getImageReader();
 
@@ -84,7 +87,7 @@ public class ROIExtractor {
         descriptor.extractData(dicomMetaData.getAttributes());
 
         try {
-            return getROIFromAnnotation(bulkAnnotation, descriptor, imageReader, param);
+            return getROIFromAnnotation(type, annotation, descriptor, imageReader, param);
         } catch (IllegalArgumentException e) {
             logger.error("Error writing ROI", e);
         }
@@ -105,19 +108,20 @@ public class ROIExtractor {
     /**
      * Given an annotation and an image, return the section of the image the annotation intersects.
      * It only works with rectangle type annotations.
-     * @param annotation the annotation to intersect
+     * @param type the annotation type
+     * @param annotation a list of points defining the annotation to extract
      * @param descriptor descriptor of the WSI pyramid, contains information about the dimensions of the image.
      * @param imageReader
      * @param param
      * @return the intersection of the annotation on the image.
      * @throws IllegalArgumentException when the annotation is not one of the supported types.
      */
-    private BufferedImage getROIFromAnnotation(BulkAnnotation annotation, WSISopDescriptor descriptor, ImageReader imageReader, DicomImageReadParam param) throws IllegalArgumentException {
-        if(notSupportedTypes.contains(annotation.getAnnotationType())){
+    private BufferedImage getROIFromAnnotation(BulkAnnotation.AnnotationType type, List<Point2D> annotation, WSISopDescriptor descriptor, ImageReader imageReader, DicomImageReadParam param) throws IllegalArgumentException {
+        if(notSupportedTypes.contains(type)){
             throw new IllegalArgumentException("Trying to build a ROI with an unsupported annotation type");
         }
 
-        List<Point2D> constructionPoints = annotation.getBoundingBox(); //Points that will be used to construct the ROI.
+        List<Point2D> constructionPoints = BulkAnnotation.getBoundingBox(type, annotation); //Points that will be used to construct the ROI.
 
         Point2D annotationPoint1 = constructionPoints.get(0);
         Point2D annotationPoint2 = constructionPoints.get(3);
@@ -134,8 +138,8 @@ public class ROIExtractor {
 
         // We need to perform clipping if annotation is not a rectangle
         Shape clippingShape = null;
-        if(annotation.getAnnotationType() != BulkAnnotation.AnnotationType.RECTANGLE){
-            clippingShape = getClippingShape(annotation, constructionPoints.get(0));
+        if(type != BulkAnnotation.AnnotationType.RECTANGLE){
+            clippingShape = getClippingShape(type, annotation, constructionPoints.get(0));
             if (clippingShape != null) g.setClip(clippingShape);
         }
 
@@ -199,25 +203,26 @@ public class ROIExtractor {
      * Given an annotation, get it as a Shape to apply as a clipping shape for the ROIs.
      * The points of this shape are normalized according to the starting point.
      * This is only needed when dealing with non-rectangle annotations.
-     * @param annotation
+     * @param type the type of annotation
+     * @param annotation the list of points of the annotation
      * @param startingPoint starting point of the rectangle that contains the annotation
      * @return a shape to use to clip the ROI
      */
-    private Shape getClippingShape(BulkAnnotation annotation, Point2D startingPoint){
-        switch (annotation.getAnnotationType()){
+    private Shape getClippingShape(BulkAnnotation.AnnotationType type, List<Point2D> annotation, Point2D startingPoint){
+        switch (type){
             case POLYLINE:
             case POLYGON:
                 Polygon polygon = new Polygon();
-                for(Point2D p : annotation.getPoints()){
+                for(Point2D p : annotation){
                     polygon.addPoint((int) (p.getX() - startingPoint.getX()), (int) (p.getY() - startingPoint.getY()));
                 }
                 return polygon;
             case ELLIPSE:
-                double minX = annotation.getPoints().get(0).getX();
-                double maxX = annotation.getPoints().get(1).getX();
+                double minX = annotation.get(0).getX();
+                double maxX = annotation.get(1).getX();
 
-                double minY = annotation.getPoints().get(2).getY();
-                double maxY = annotation.getPoints().get(3).getY();
+                double minY = annotation.get(2).getY();
+                double maxY = annotation.get(3).getY();
 
                 return new Ellipse2D.Double(minX - startingPoint.getX(), minY - startingPoint.getY(), Math.abs(maxX - minX), Math.abs(maxY - minY));
 

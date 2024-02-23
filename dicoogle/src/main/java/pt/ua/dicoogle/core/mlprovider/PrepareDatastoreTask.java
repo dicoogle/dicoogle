@@ -18,18 +18,29 @@
  */
 package pt.ua.dicoogle.core.mlprovider;
 
+import org.dcm4che2.data.BasicDicomObject;
+import org.dcm4che2.data.Tag;
+import org.dcm4che2.data.TransferSyntax;
+import org.dcm4che2.data.VR;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pt.ua.dicoogle.plugins.PluginController;
 import pt.ua.dicoogle.sdk.datastructs.SearchResult;
-import pt.ua.dicoogle.sdk.mlprovider.MLDataset;
-import pt.ua.dicoogle.sdk.mlprovider.MLDicomDataset;
-import pt.ua.dicoogle.sdk.mlprovider.MLImageDataset;
+import pt.ua.dicoogle.sdk.datastructs.dim.BulkAnnotation;
+import pt.ua.dicoogle.sdk.datastructs.dim.Point2D;
+import pt.ua.dicoogle.sdk.mlprovider.*;
 import pt.ua.dicoogle.server.web.dicom.ROIExtractor;
 import pt.ua.dicoogle.server.web.utils.cache.WSICache;
 
-import java.util.HashMap;
-import java.util.UUID;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
@@ -65,10 +76,12 @@ public class PrepareDatastoreTask implements Callable<MLDataset> {
         switch (request.getDataType()){
             case DICOM:
                 return new MLDicomDataset(request.getDimLevel(), request.getUids());
-            case IMAGE: // Not operational
-                throw new UnsupportedOperationException("Datastore requests for image objects is not supported");
-                /*
-                HashMap<String, String> extraFields = new HashMap<String, String>();
+            case IMAGE:
+                //throw new UnsupportedOperationException("Datastore requests for image objects is not supported");
+
+                HashMap<String, String> extraFields = new HashMap<>();
+
+                String path = this.ensureAndCreatePath();
 
                 extraFields.put("SOPInstanceUID", "SOPInstanceUID");
                 extraFields.put("SharedFunctionalGroupsSequence_PixelMeasuresSequence_PixelSpacing", "SharedFunctionalGroupsSequence_PixelMeasuresSequence_PixelSpacing");
@@ -80,6 +93,8 @@ public class PrepareDatastoreTask implements Callable<MLDataset> {
                 extraFields.put("ImageType", "ImageType");
 
                 MLImageDataset mlDataset = new MLImageDataset();
+                HashMap<ImageEntry, MLlabel> dataset = new HashMap<>();
+                Set<String> classes = new HashSet<>();
 
                 this.request.getDataset().entrySet().forEach((entry -> {
                     try {
@@ -88,18 +103,61 @@ public class PrepareDatastoreTask implements Callable<MLDataset> {
                         Iterable<SearchResult> results = controller
                                 .query(controller.getQueryProvidersName(true).get(0), "SOPInstanceUID:" + entry.getKey(), extraFields).get();
 
+                        int c = 0;
                         for (SearchResult image : results) {
-                            //List<ImageROI> rois = (List<ImageROI>) roiExtractor.extractROI();
+
+                            BasicDicomObject dcm = new BasicDicomObject();
+                            dcm.putString(Tag.TransferSyntaxUID, VR.CS, "1.2.840.10008.1.2.4.50");
+
+                            for(BulkAnnotation annotation: entry.getValue()){
+                                for(List<Point2D> points: annotation.getAnnotations()){
+                                    BufferedImage roi = roiExtractor.extractROI(image.get("SOPInstanceUID").toString(), annotation.getAnnotationType(), points);
+                                    String roiFileName = annotation.getLabel().getName() + c++;
+                                    classes.add(annotation.getLabel().getName());
+                                    File output = new File(path + File.separator + roiFileName + ".jpeg");
+                                    ImageIO.write(roi, "jpeg", output);
+                                    dataset.put(new ImageEntry(dcm, output.toURI()), annotation.getLabel());
+                                }
+                            }
                         }
 
-                    } catch (InterruptedException | ExecutionException e) {
+                    } catch (IOException | InterruptedException | ExecutionException e) {
                         logger.error("Error preparing datastore task", e);
                     }
                 }));
+
+                mlDataset.setMultiClass(classes.size() > 2);
+                mlDataset.setDataset(dataset);
+
                 return mlDataset;
-                */
             default:
                 return null;
         }
     }
+
+    private String ensureAndCreatePath(){
+        Path datasetsFolder = Paths.get("datasets");
+        // Check if the folder exists
+        if (!Files.exists(datasetsFolder)) {
+            try {
+                Files.createDirectories(datasetsFolder);
+                System.out.println("Datasets folder didn't exist, creating one.");
+            } catch (Exception e) {
+                System.err.println("Failed to create datasets folder: " + e.getMessage());
+            }
+        }
+
+        Path datasetFolder = Paths.get("datasets" + File.separator + System.currentTimeMillis());
+
+        if (!Files.exists(datasetFolder)) {
+            try {
+                Files.createDirectories(datasetFolder);
+            } catch (Exception e) {
+                System.err.println("Failed to create dataset folder: " + e.getMessage());
+            }
+        }
+
+        return datasetFolder.toString();
+    }
+
 }

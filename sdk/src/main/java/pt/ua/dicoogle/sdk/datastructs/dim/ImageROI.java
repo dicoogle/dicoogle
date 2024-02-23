@@ -50,9 +50,9 @@ public class ImageROI {
 
     private double y;
 
-    private int width;
+    private double width;
 
-    private int height;
+    private double height;
 
     private String sopInstanceUID;
 
@@ -65,6 +65,14 @@ public class ImageROI {
         this.y = y;
         this.width = width;
         this.height = height;
+    }
+
+    public ImageROI(String sopInstanceUID, double x, double y, double width, double height, URI roi) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.uriROI = roi;
     }
 
     public double getX() {
@@ -91,7 +99,7 @@ public class ImageROI {
         this.sopInstanceUID = sopInstanceUID;
     }
 
-    public int getWidth() {
+    public double getWidth() {
         return width;
     }
 
@@ -99,7 +107,7 @@ public class ImageROI {
         this.width = width;
     }
 
-    public int getHeight() {
+    public double getHeight() {
         return height;
     }
 

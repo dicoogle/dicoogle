@@ -982,16 +982,18 @@ public class PluginController {
         String uuid = UUID.randomUUID().toString();
         Task<MLDataset> prepareTask =
                 new Task<>("MLPrepareDatastoreTask" + uuid, new PrepareDatastoreTask(this, datasetRequest));
+        MLProviderInterface mlInterface = getMachineLearningProviderByName(datasetRequest.getProvider(), true);
+        if (mlInterface == null) {
+            logger.error("MLProvider with name {} not found", datasetRequest.getProvider());
+            prepareTask.cancel(true);
+            return prepareTask;
+        }
+
         prepareTask.onCompletion(() -> {
-            MLProviderInterface mlInterface = getMachineLearningProviderByName(datasetRequest.getProvider(), true);
-            if (mlInterface == null) {
-                logger.error("MLProvider with name {} not found", prepareTask.getName());
-            } else {
-                try {
-                    mlInterface.dataStore(prepareTask.get());
-                } catch (InterruptedException | ExecutionException e) {
-                    logger.error("Task {} failed execution", prepareTask.getName(), e);
-                }
+            try {
+                mlInterface.dataStore(prepareTask.get());
+            } catch (InterruptedException | ExecutionException e) {
+                logger.error("Task {} failed execution", prepareTask.getName(), e);
             }
         });
         logger.debug("Fired prepare dataset task with uuid {}", uuid);

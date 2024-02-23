@@ -38,7 +38,7 @@ public class MLlabel implements Comparable<MLlabel>, Serializable {
     /**
      * DICOM Segment Label (0062, 0005) is a user defined label.
      */
-    private String label;
+    private String name;
 
     /**
      * DICOM Segment Description (0062, 0007) is a user defined description.
@@ -67,8 +67,7 @@ public class MLlabel implements Comparable<MLlabel>, Serializable {
      */
     private CodingSchemeDesignator codingSchemeDesignator;
 
-    public MLlabel(String label) {
-        this.label = label;
+    public MLlabel(){
         this.description = "unknown";
         this.codingSchemeDesignator = CodingSchemeDesignator.DCM;
         this.codeValue = "333333";
@@ -76,12 +75,17 @@ public class MLlabel implements Comparable<MLlabel>, Serializable {
         this.color = "#000000";
     }
 
-    public String getLabel() {
-        return label;
+    public MLlabel(String name) {
+        this();
+        this.name = name;
     }
 
-    public void setLabel(String label) {
-        this.label = label;
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getDescription() {
@@ -129,16 +133,16 @@ public class MLlabel implements Comparable<MLlabel>, Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MLlabel mLlabel = (MLlabel) o;
-        return label.equals(mLlabel.label);
+        return name.equals(mLlabel.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(label);
+        return Objects.hash(name);
     }
 
     @Override
     public int compareTo(MLlabel o) {
-        return o.getLabel().compareTo(this.getLabel());
+        return o.getName().compareTo(this.getName());
     }
 }

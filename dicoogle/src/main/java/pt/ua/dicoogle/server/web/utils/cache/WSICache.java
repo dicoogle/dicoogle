@@ -31,20 +31,14 @@ import pt.ua.dicoogle.sdk.StorageInputStream;
 import pt.ua.dicoogle.sdk.datastructs.SearchResult;
 import pt.ua.dicoogle.sdk.utils.QueryException;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.net.URI;
 import java.security.InvalidParameterException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.zip.GZIPInputStream;
 
 /**
  * Cache used to store DicomMetadata objects temporarily, as they are quite heavy to build on-demand.
  * Used only for WSI instances.
- * @author Rui Jesus <r.jesus@ua.pt>
  */
 public class WSICache extends MemoryCache<DicomMetaData>{
 

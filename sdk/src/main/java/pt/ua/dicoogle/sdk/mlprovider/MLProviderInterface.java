@@ -49,6 +49,16 @@ public abstract class MLProviderInterface implements DicooglePlugin {
     public abstract void dataStore(MLDataset dataset);
 
     /**
+     * This method is similar to dataStore in that is also used to upload data to a provider.
+     * The main difference is that this method should be used to cache DICOM objects on the provider,
+     * so that the provider can for example run the inference tasks locally.
+     * Only DICOM objects can be cached.
+     * @param dataset a DICOM dataset to cache.
+     * @return a task to the cache operation. Returns true if the dataset was cached.
+     */
+    public abstract Task<Boolean> cache(MLDicomDataset dataset);
+    
+    /**
      * This method creates a model using a specific dataset
      */
     public abstract MLModel createModel();
@@ -99,6 +109,12 @@ public abstract class MLProviderInterface implements DicooglePlugin {
      * @return true if the provider is ready to be used, false otherwise.
      */
     public abstract boolean isAvailable();
+
+    /**
+     * This method can be used to determine which of the methods of this interface are implemented.
+     * @return a list of the methods implemented.
+     */
+    public abstract Set<MLMethod> getImplementedMethods();
 
     public Set<MLDataType> getAcceptedDataTypes() {
         return acceptedDataTypes;

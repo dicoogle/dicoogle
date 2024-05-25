@@ -33,10 +33,7 @@ import pt.ua.dicoogle.sdk.datastructs.Report;
 import pt.ua.dicoogle.sdk.datastructs.UnindexReport;
 import pt.ua.dicoogle.sdk.datastructs.SearchResult;
 import pt.ua.dicoogle.sdk.datastructs.dim.DimLevel;
-import pt.ua.dicoogle.sdk.mlprovider.MLDataset;
-import pt.ua.dicoogle.sdk.mlprovider.MLInference;
-import pt.ua.dicoogle.sdk.mlprovider.MLInferenceRequest;
-import pt.ua.dicoogle.sdk.mlprovider.MLProviderInterface;
+import pt.ua.dicoogle.sdk.mlprovider.*;
 import pt.ua.dicoogle.sdk.settings.ConfigurationHolder;
 import pt.ua.dicoogle.sdk.task.JointQueryTask;
 import pt.ua.dicoogle.sdk.task.Task;
@@ -999,6 +996,19 @@ public class PluginController {
         logger.debug("Fired prepare dataset task with uuid {}", uuid);
         taskManagerML.dispatch(prepareTask);
         return prepareTask;
+    }
+
+    public Task<Boolean> cache(String provider, final MLDicomDataset dataset) {
+        String taskName = "MLPredictionTask" + UUID.randomUUID();
+        MLProviderInterface mlInterface = getMachineLearningProviderByName(provider, true);
+        if (mlInterface == null) {
+            logger.error("MLProvider with name {} not found", provider);
+            return null;
+        }
+
+        Task<Boolean> task = mlInterface.cache(dataset);
+        task.setName(taskName);
+        return task;
     }
 
     // Methods for Web UI

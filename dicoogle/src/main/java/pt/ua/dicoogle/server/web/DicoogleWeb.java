@@ -226,6 +226,8 @@ public class DicoogleWeb {
                 createServletHandler(new TrainServlet(), "/ml/train"),
                 createServletHandler(new ListAllModelsServlet(), "/ml/model/list"),
                 createServletHandler(new ModelinfoServlet(), "/ml/model/info"),
+                createServletHandler(new CacheServlet(), "/ml/cache"),
+                createServletHandler(new ImplementedMethodsServlet(), "/ml/provider/methods"),
                 webpages};
 
         // setup the server

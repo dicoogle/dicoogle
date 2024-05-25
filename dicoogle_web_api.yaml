@@ -1150,7 +1150,7 @@ paths:
               $ref: '#/components/schemas/DatastoreRequest'
       responses:
         '200':
-          description: The datastore request was successully processed and sent to the provider
+          description: The datastore request was successfully processed and sent to the provider
         '400':
           description: Malformed request
   /ml/infer/single:
@@ -1310,6 +1310,55 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MLModelTrainInfo'
+        '400':
+          description: Malformed request
+  /ml/cache:
+    post:
+      tags:
+        - Machine Learning
+      summary: Cache DICOM objects on a provider
+      operationId: mlCache
+      parameters:
+        - in: query
+          name: provider
+          description: The name of the provider, e.g "MONAI"
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Contains the DICOM files to cache
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DICOMDataset'
+      responses:
+        '200':
+          description: The cache request was successfully processed and sent to the provider
+        '400':
+          description: Malformed request
+  /ml/provider/methods:
+    get:
+      tags:
+        - Machine Learning
+      summary: Retrieves the implemented methods of the machine learning interface from a provider
+      operationId: mlCache
+      parameters:
+        - in: query
+          name: provider
+          description: The name of the provider, e.g "MONAI"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of the implemented methods
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
         '400':
           description: Malformed request
 
@@ -1744,6 +1793,16 @@ components:
         dataset:
           type: object
           description: A map where keys represent SOPInstances and the values are annotations to upload
+    DICOMDataset:
+      type: object
+      properties:
+        level:
+          type: string
+          enum: [PATIENT, STUDY, SERIES, INSTANCE]
+        dimUIDs:
+          type: array
+          items:
+            type: string
     TrainRequest:
       type: object
       properties:

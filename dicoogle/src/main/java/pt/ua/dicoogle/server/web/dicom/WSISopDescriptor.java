@@ -20,6 +20,7 @@ package pt.ua.dicoogle.server.web.dicom;
 
 import org.dcm4che2.data.Tag;
 import org.dcm4che3.data.Attributes;
+
 /**
  * Utility class to describe a specific resolution level of a WSI pyramid
  */
@@ -37,8 +38,7 @@ public class WSISopDescriptor {
         this.totalPixelMatrixRows = totalPixelMatrixRows;
     }
 
-    public WSISopDescriptor() {
-    }
+    public WSISopDescriptor() {}
 
     public int getTileWidth() {
         return tileWidth;
@@ -76,7 +76,7 @@ public class WSISopDescriptor {
      * Given a search result, extract if possible the information that describes the resolution level contained within.
      * @param attrs
      */
-    public void extractData(Attributes attrs){
+    public void extractData(Attributes attrs) {
         String strRows = attrs.getString(Tag.Rows);
         String strColumns = attrs.getString(Tag.Columns);
         String strTotalPixelMatrixColumns = attrs.getString(Tag.TotalPixelMatrixColumns);

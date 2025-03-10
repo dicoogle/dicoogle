@@ -56,7 +56,7 @@ public class MLModel implements Serializable {
         processMagnification = 0;
     }
 
-    public MLModel(String name, String id, List<MLModelParameter> parameters){
+    public MLModel(String name, String id, List<MLModelParameter> parameters) {
         this(name, id);
         this.parameters = parameters;
     }
@@ -125,11 +125,11 @@ public class MLModel implements Serializable {
         this.parameters = parameters;
     }
 
-    public void removeLabel(MLlabel label){
+    public void removeLabel(MLlabel label) {
         this.labels.remove(label);
     }
 
-    public void addLabel(MLlabel label){
+    public void addLabel(MLlabel label) {
         this.labels.add(label);
     }
 

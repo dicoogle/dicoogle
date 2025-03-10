@@ -1217,8 +1217,7 @@ public class LegacyServerSettings implements ServerSettings {
         }
 
         @Override
-        public void setSupportWSI(boolean supportWSI) {
-        }
+        public void setSupportWSI(boolean supportWSI) {}
 
         @Override
         public void setDirectoryWatcherEnabled(boolean watch) {

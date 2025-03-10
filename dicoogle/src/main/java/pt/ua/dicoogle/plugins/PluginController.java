@@ -959,7 +959,7 @@ public class PluginController {
      */
     public Task<MLInference> infer(final String provider, final MLInferenceRequest predictionRequest) {
         MLProviderInterface providerInterface = this.getMachineLearningProviderByName(provider, true);
-        if(providerInterface == null)
+        if (providerInterface == null)
             return null;
 
         String taskName = "MLPredictionTask" + UUID.randomUUID();

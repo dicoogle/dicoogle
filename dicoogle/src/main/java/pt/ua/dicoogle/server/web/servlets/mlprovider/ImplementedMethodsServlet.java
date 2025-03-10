@@ -34,12 +34,13 @@ import java.util.Set;
 public class ImplementedMethodsServlet extends HttpServlet {
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         ObjectMapper mapper = new ObjectMapper();
 
         String provider = request.getParameter("provider");
 
-        if(provider == null || provider.isEmpty()){
+        if (provider == null || provider.isEmpty()) {
             response.sendError(404, "Provider provided was invalid");
             return;
 

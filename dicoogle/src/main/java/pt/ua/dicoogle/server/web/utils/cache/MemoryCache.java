@@ -37,15 +37,14 @@ public abstract class MemoryCache<T> {
     protected int hoursToKeep = 12;
     protected int maximumSize = 1000;
 
-    protected MemoryCache() {
-    }
+    protected MemoryCache() {}
 
     protected MemoryCache(int hoursToKeep, int maximumSize) {
         this.hoursToKeep = hoursToKeep;
         this.maximumSize = maximumSize;
     }
 
-    public T get(String key){
+    public T get(String key) {
         try {
             return memoryCache.get(key);
         } catch (ExecutionException e) {

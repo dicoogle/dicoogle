@@ -80,13 +80,13 @@ public class BulkAnnotation {
 
     private List<List<Point2D>> annotations;
 
-    public BulkAnnotation(AnnotationType type, PixelOrigin origin){
+    public BulkAnnotation(AnnotationType type, PixelOrigin origin) {
         this.annotationType = type;
         this.pixelOrigin = origin;
         this.annotations = new ArrayList<>();
     }
 
-    public BulkAnnotation(AnnotationType type, PixelOrigin origin, List<List<Point2D>> annotations){
+    public BulkAnnotation(AnnotationType type, PixelOrigin origin, List<List<Point2D>> annotations) {
         this(type, origin);
         this.annotations = annotations;
     }
@@ -131,11 +131,11 @@ public class BulkAnnotation {
         this.annotations = annotations;
     }
 
-    public void addAnnotation(List<Point2D> annotation){
+    public void addAnnotation(List<Point2D> annotation) {
         this.annotations.add(annotation);
     }
 
-    public List<Point2D> getBoundingBox(List<Point2D> points){
+    public List<Point2D> getBoundingBox(List<Point2D> points) {
         return BulkAnnotation.getBoundingBox(this.annotationType, points);
     }
 
@@ -143,27 +143,27 @@ public class BulkAnnotation {
      * Calculate the bounding box of an annotation from this bulk.
      * @return a list of 4 points, representing a rectangle that contains the provided annotation.
      */
-    public static List<Point2D> getBoundingBox(AnnotationType type, List<Point2D> points){
+    public static List<Point2D> getBoundingBox(AnnotationType type, List<Point2D> points) {
 
         double minX = Double.MAX_VALUE;
         double minY = Double.MAX_VALUE;
         double maxX = Double.MIN_VALUE;
         double maxY = Double.MIN_VALUE;
 
-        switch (type){
+        switch (type) {
             case RECTANGLE:
                 return points; // In case of rectangles, annotations are already coded as the corners of the rectangle
             case POLYGON:
             case POLYLINE:
-                for(Point2D p : points){
-                    if(p.getX() > maxX)
+                for (Point2D p : points) {
+                    if (p.getX() > maxX)
                         maxX = p.getX();
-                    if(p.getX() < minX)
+                    if (p.getX() < minX)
                         minX = p.getX();
 
-                    if(p.getY() > maxY)
+                    if (p.getY() > maxY)
                         maxY = p.getY();
-                    if(p.getY() < minY)
+                    if (p.getY() < minY)
                         minY = p.getY();
                 }
                 break;
@@ -188,7 +188,7 @@ public class BulkAnnotation {
      * @param points
      * @return
      */
-    public double getArea(List<Point2D> points){
+    public double getArea(List<Point2D> points) {
         List<Point2D> bbox = this.getBoundingBox(points);
         double width = bbox.get(1).getX() - bbox.get(0).getX();
         double height = bbox.get(0).getY() - bbox.get(2).getY();

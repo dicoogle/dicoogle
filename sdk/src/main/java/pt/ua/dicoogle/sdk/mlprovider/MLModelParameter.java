@@ -32,10 +32,8 @@ public class MLModelParameter {
     private String description;
     private List<Choice> choices;
 
-    public enum MLModelParameterType{
-        TEXT,
-        NUMBER,
-        ENUM
+    public enum MLModelParameterType {
+        TEXT, NUMBER, ENUM
     }
 
     public static class Choice {
@@ -72,27 +70,28 @@ public class MLModelParameter {
         this.description = description;
     }
 
-    private MLModelParameter(String name, List<Choice> choices, Object defaultValue, String description){
+    private MLModelParameter(String name, List<Choice> choices, Object defaultValue, String description) {
         this(MLModelParameterType.ENUM, name, defaultValue, description);
         this.choices = choices;
     }
 
-    public static MLModelParameter buildNumberParam(String name, double defaultValue, String description){
-        if(name == null || name.isEmpty())
+    public static MLModelParameter buildNumberParam(String name, double defaultValue, String description) {
+        if (name == null || name.isEmpty())
             throw new IllegalArgumentException();
         return new MLModelParameter(MLModelParameterType.NUMBER, name, defaultValue, description);
     }
 
-    public static MLModelParameter buildTextParam(String name, String defaultValue, String description){
-        if(name == null || name.isEmpty())
+    public static MLModelParameter buildTextParam(String name, String defaultValue, String description) {
+        if (name == null || name.isEmpty())
             throw new IllegalArgumentException();
         return new MLModelParameter(MLModelParameterType.TEXT, name, defaultValue, description);
     }
 
-    public static MLModelParameter buildEnumParam(String name, List<Choice> choices, Object defaultValue, String description){
-        if(name == null || name.isEmpty())
+    public static MLModelParameter buildEnumParam(String name, List<Choice> choices, Object defaultValue,
+            String description) {
+        if (name == null || name.isEmpty())
             throw new IllegalArgumentException();
-        if(choices == null || choices.isEmpty())
+        if (choices == null || choices.isEmpty())
             throw new IllegalArgumentException();
         return new MLModelParameter(name, choices, defaultValue, description);
     }

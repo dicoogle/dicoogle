@@ -57,7 +57,7 @@ public abstract class MLProviderInterface implements DicooglePlugin {
      * @return a task to the cache operation. Returns true if the dataset was cached.
      */
     public abstract Task<Boolean> cache(MLDicomDataset dataset);
-    
+
     /**
      * This method creates a model using a specific dataset
      */

@@ -57,8 +57,10 @@ public class ImageEntry {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         ImageEntry that = (ImageEntry) o;
         return object.equals(that.object) && file.equals(that.file);
     }

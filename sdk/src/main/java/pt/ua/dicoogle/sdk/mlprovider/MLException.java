@@ -18,7 +18,7 @@
  */
 package pt.ua.dicoogle.sdk.mlprovider;
 
-public class MLException extends RuntimeException{
+public class MLException extends RuntimeException {
 
     public MLException() {
         super();

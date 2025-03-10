@@ -99,13 +99,13 @@ public class DatastoreRequest {
      * For example, if it is of DICOM type, it must specify the dim level and the dim uid.
      * @return true if the request can processed, false otherwise.
      */
-    public boolean validate(){
-        if(provider == null || provider.isEmpty())
+    public boolean validate() {
+        if (provider == null || provider.isEmpty())
             return false;
 
-        switch (dataType){
+        switch (dataType) {
             case DICOM:
-                if(this.dimLevel == null || this.uids == null || this.uids.isEmpty())
+                if (this.dimLevel == null || this.uids == null || this.uids.isEmpty())
                     return false;
             case IMAGE:
                 return this.dataset != null && !this.dataset.isEmpty();

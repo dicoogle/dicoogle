@@ -69,29 +69,32 @@ public class InferServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
         String jsonString = IOUtils.toString(request.getReader());
         ObjectMapper mapper = new ObjectMapper();
         JsonNode body = mapper.readTree(jsonString);
 
         // Validate the common attributes between WSI and non-WSI requests
-        if(!body.has("level")){
-            ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "DIM level provided was invalid");
+        if (!body.has("level")) {
+            ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(),
+                    "DIM level provided was invalid");
             return;
         }
 
-        if(!body.has("uid")){
+        if (!body.has("uid")) {
             ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "DIM UID provided was invalid");
             return;
         }
 
-        if(!body.has("provider")){
-            ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Provider provided was invalid");
+        if (!body.has("provider")) {
+            ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(),
+                    "Provider provided was invalid");
             return;
         }
 
-        if(!body.has("modelID")){
+        if (!body.has("modelID")) {
             ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Model identifier was invalid");
             return;
         }
@@ -103,37 +106,41 @@ public class InferServlet extends HttpServlet {
         String dimUID = body.get("uid").asText();
 
         Map<String, Object> parameters;
-        if(body.has("parameters"))
+        if (body.has("parameters"))
             parameters = mapper.convertValue(body.get("parameters"), Map.class);
         else
             parameters = new HashMap<>();
 
         Task<MLInference> task;
 
-        if(wsi){
+        if (wsi) {
 
-            if(!body.has("points") || !body.has("type") || !body.has("baseUID")){
-                ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Insufficient data to build request");
+            if (!body.has("points") || !body.has("type") || !body.has("baseUID")) {
+                ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(),
+                        "Insufficient data to build request");
                 return;
             }
 
-            if(level != DimLevel.INSTANCE){
-                ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Only Instance level is supported with WSI");
+            if (level != DimLevel.INSTANCE) {
+                ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(),
+                        "Only Instance level is supported with WSI");
                 return;
             }
 
             String baseSopInstanceUID = body.get("baseUID").asText();
 
             BulkAnnotation.AnnotationType type = BulkAnnotation.AnnotationType.valueOf(body.get("type").asText());
-            List<Point2D> points = mapper.readValue(body.get("points").toString(), new TypeReference<List<Point2D>>(){});
+            List<Point2D> points =
+                    mapper.readValue(body.get("points").toString(), new TypeReference<List<Point2D>>() {});
             task = sendWSIRequest(provider, modelID, baseSopInstanceUID, dimUID, type, points, parameters, response);
 
         } else {
             task = sendRequest(provider, modelID, level, dimUID, parameters, response);
         }
 
-        if(task == null){
-            ResponseUtil.sendError(response, Status.SERVER_ERROR_INTERNAL.getCode(), "Could not build prediction request");
+        if (task == null) {
+            ResponseUtil.sendError(response, Status.SERVER_ERROR_INTERNAL.getCode(),
+                    "Could not build prediction request");
             return;
         }
 
@@ -141,8 +148,8 @@ public class InferServlet extends HttpServlet {
     }
 
     private Task<MLInference> sendWSIRequest(String provider, String modelID, String baseSopInstanceUID, String uid,
-                                             BulkAnnotation.AnnotationType roiType, List<Point2D> roi,
-                                             Map<String, Object> parameters, HttpServletResponse response){
+            BulkAnnotation.AnnotationType roiType, List<Point2D> roi, Map<String, Object> parameters,
+            HttpServletResponse response) {
 
         ObjectMapper mapper = new ObjectMapper();
         MLInferenceRequest predictionRequest = new MLInferenceRequest(true, DimLevel.INSTANCE, uid, modelID);
@@ -163,31 +170,33 @@ public class InferServlet extends HttpServlet {
 
             double scale = (descriptor.getTotalPixelMatrixRows() * 1.0) / baseDescriptor.getTotalPixelMatrixRows();
 
-            if(!uid.equals(baseSopInstanceUID)){
+            if (!uid.equals(baseSopInstanceUID)) {
                 scaleAnnotation(annotation, scale);
             }
 
             // Verify dimensions of annotation, reject if too big. In the future, adopt a sliding window strategy to process large processing windows.
             double area = annotation.getArea(annotation.getAnnotations().get(0));
-            if(area > 16000000) // This equates to a maximum of 4000x4000 which represents in RGB an image of 48MB
+            if (area > 16000000) // This equates to a maximum of 4000x4000 which represents in RGB an image of 48MB
                 return null;
 
-            BufferedImage bi = roiExtractor.extractROI(dicomMetaData, annotation.getAnnotationType(), annotation.getAnnotations().get(0));
+            BufferedImage bi = roiExtractor.extractROI(dicomMetaData, annotation.getAnnotationType(),
+                    annotation.getAnnotations().get(0));
             predictionRequest.setRoi(bi);
             Task<MLInference> task = PluginController.getInstance().infer(provider, predictionRequest);
-            if(task != null){
+            if (task != null) {
                 task.onCompletion(() -> {
                     try {
                         MLInference prediction = task.get();
 
-                        if(prediction == null){
+                        if (prediction == null) {
                             log.error("Provider returned null prediction");
-                            ResponseUtil.sendError(response, Status.SERVER_ERROR_INTERNAL.getCode(), "Could not make prediction");
+                            ResponseUtil.sendError(response, Status.SERVER_ERROR_INTERNAL.getCode(),
+                                    "Could not make prediction");
                             return;
                         }
 
                         // Coordinates need to be converted if we're working with WSI
-                        if(!prediction.getAnnotations().isEmpty()){
+                        if (!prediction.getAnnotations().isEmpty()) {
                             Point2D tl = annotation.getBoundingBox(annotation.getAnnotations().get(0)).get(0);
                             convertCoordinates(prediction, tl, scale);
                         }
@@ -199,7 +208,8 @@ public class InferServlet extends HttpServlet {
                     } catch (InterruptedException | ExecutionException e) {
                         log.error("Could not make prediction", e);
                         try {
-                            ResponseUtil.sendError(response, Status.SERVER_ERROR_INTERNAL.getCode(), "Could not make prediction");
+                            ResponseUtil.sendError(response, Status.SERVER_ERROR_INTERNAL.getCode(),
+                                    "Could not make prediction");
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
                         }
@@ -214,42 +224,44 @@ public class InferServlet extends HttpServlet {
         }
     }
 
-    private Task<MLInference> sendRequest(String provider, String modelID, DimLevel level, String dimUID, Map<String,
-            Object> parameters, HttpServletResponse response){
+    private Task<MLInference> sendRequest(String provider, String modelID, DimLevel level, String dimUID,
+            Map<String, Object> parameters, HttpServletResponse response) {
         ObjectMapper mapper = new ObjectMapper();
         MLInferenceRequest predictionRequest = new MLInferenceRequest(false, level, dimUID, modelID);
         predictionRequest.setParameters(parameters);
         Task<MLInference> task = PluginController.getInstance().infer(provider, predictionRequest);
-        if(task != null){
+        if (task != null) {
             task.onCompletion(() -> {
                 try {
                     MLInference prediction = task.get();
 
-                    if(prediction == null){
+                    if (prediction == null) {
                         log.error("Provider returned null prediction");
-                        ResponseUtil.sendError(response, Status.SERVER_ERROR_INTERNAL.getCode(), "Could not make prediction");
+                        ResponseUtil.sendError(response, Status.SERVER_ERROR_INTERNAL.getCode(),
+                                "Could not make prediction");
                         return;
                     }
 
-                    if((prediction.getDicomSEG() != null) && !prediction.hasResults()){
+                    if ((prediction.getDicomSEG() != null) && !prediction.hasResults()) {
                         response.setContentType("application/dicom");
                         ServletOutputStream out = response.getOutputStream();
                         try (InputStream fi = Files.newInputStream(prediction.getDicomSEG())) {
                             IOUtils.copy(fi, out);
                             out.flush();
                         }
-                    } else if((prediction.getDicomSEG() != null) && prediction.hasResults()){
+                    } else if ((prediction.getDicomSEG() != null) && prediction.hasResults()) {
                         // We have a file to send, got to build a multi part response
                         String boundary = UUID.randomUUID().toString();
                         response.setContentType("multipart/form-data; boundary=" + boundary);
 
-                        try (ServletOutputStream out = response.getOutputStream()){
+                        try (ServletOutputStream out = response.getOutputStream()) {
                             out.print("--" + boundary);
                             out.println();
                             out.print("Content-Disposition: form-data; name=\"params\"");
                             out.println();
                             out.print("Content-Type: application/json");
-                            out.println(); out.println();
+                            out.println();
+                            out.println();
                             out.print(mapper.writeValueAsString(prediction));
                             out.println();
                             out.print("--" + boundary);
@@ -257,7 +269,8 @@ public class InferServlet extends HttpServlet {
                             out.print("Content-Disposition: form-data; name=\"dicomseg\"; filename=\"dicomseg.dcm\"");
                             out.println();
                             out.print("Content-Type: application/dicom");
-                            out.println(); out.println();
+                            out.println();
+                            out.println();
 
                             try (InputStream fi = Files.newInputStream(prediction.getDicomSEG())) {
                                 IOUtils.copy(fi, out);
@@ -275,18 +288,19 @@ public class InferServlet extends HttpServlet {
                         out.close();
                     }
 
-                    try{
-                        if(!StringUtils.isBlank(prediction.getResourcesFolder())){
+                    try {
+                        if (!StringUtils.isBlank(prediction.getResourcesFolder())) {
                             FileUtils.deleteDirectory(new File(prediction.getResourcesFolder()));
                         }
-                    } catch (IOException e){
+                    } catch (IOException e) {
                         log.warn("Could not delete temporary file", e);
                     }
 
                 } catch (InterruptedException | ExecutionException e) {
                     log.error("Could not make prediction", e);
                     try {
-                        ResponseUtil.sendError(response, Status.SERVER_ERROR_INTERNAL.getCode(), "Could not make prediction");
+                        ResponseUtil.sendError(response, Status.SERVER_ERROR_INTERNAL.getCode(),
+                                "Could not make prediction");
                     } catch (IOException ex) {
                         throw new RuntimeException(ex);
                     }
@@ -299,7 +313,7 @@ public class InferServlet extends HttpServlet {
         return task;
     }
 
-    private DicomMetaData getDicomMetadata(String sop) throws IOException{
+    private DicomMetaData getDicomMetadata(String sop) throws IOException {
         return wsiCache.get(sop);
     }
 
@@ -311,10 +325,10 @@ public class InferServlet extends HttpServlet {
      * @param scale to transform coordinates
      * @return the ml prediction with the converted coordinates.
      */
-    private void convertCoordinates(MLInference prediction, Point2D tl, double scale){
-        for(BulkAnnotation ann : prediction.getAnnotations()){
-            for(List<Point2D> points : ann.getAnnotations()){
-                for(Point2D p : points){
+    private void convertCoordinates(MLInference prediction, Point2D tl, double scale) {
+        for (BulkAnnotation ann : prediction.getAnnotations()) {
+            for (List<Point2D> points : ann.getAnnotations()) {
+                for (Point2D p : points) {
                     p.setX((p.getX() + tl.getX()) * scale);
                     p.setY((p.getY() + tl.getY()) * scale);
                 }
@@ -328,9 +342,9 @@ public class InferServlet extends HttpServlet {
      * @param scale to transform coordinates
      * @return the ml prediction with the converted coordinates.
      */
-    private void scaleAnnotation(BulkAnnotation annotation, double scale){
-        for(List<Point2D> ann : annotation.getAnnotations()){
-            for(Point2D p : ann){
+    private void scaleAnnotation(BulkAnnotation annotation, double scale) {
+        for (List<Point2D> ann : annotation.getAnnotations()) {
+            for (Point2D p : ann) {
                 p.setX((p.getX()) * scale);
                 p.setY((p.getY()) * scale);
             }

@@ -83,7 +83,7 @@ public class UnindexServlet extends HttpServlet {
                     "No arguments provided; must include either one of `uri`, `SOPInstanceUID`, `SeriesInstanceUID` or `StudyInstanceUID`");
             return;
         }
-        
+
         PluginController pc = PluginController.getInstance();
 
         long indexed = 0;
@@ -109,16 +109,14 @@ public class UnindexServlet extends HttpServlet {
             List<Task<UnindexReport>> tasks = new ArrayList<>();
 
             if (providers == null) {
-                providers = pc.getIndexingPlugins(true).stream()
-                    .map(p -> p.getName())
-                    .collect(Collectors.toList());
+                providers = pc.getIndexingPlugins(true).stream().map(p -> p.getName()).collect(Collectors.toList());
             }
-            for (String indexProvider: providers) {
+            for (String indexProvider : providers) {
                 tasks.add(pc.unindex(indexProvider, uris, null));
             }
 
             int i = 0;
-            for (Task<UnindexReport> task: tasks) {
+            for (Task<UnindexReport> task : tasks) {
                 try {
                     UnindexReport report = task.get();
                     indexed = uris.size() - report.notUnindexedFileCount();
@@ -144,9 +142,7 @@ public class UnindexServlet extends HttpServlet {
     private static Collection<URI> resolveURIs(String[] paramUri, String[] paramSop, String[] paramSeries,
             String[] paramStudy) {
         if (paramUri != null) {
-            return Stream.of(paramUri)
-                .map(URI::create)
-                .collect(Collectors.toList());
+            return Stream.of(paramUri).map(URI::create).collect(Collectors.toList());
         }
         String attribute = null;
         if (paramSop != null) {

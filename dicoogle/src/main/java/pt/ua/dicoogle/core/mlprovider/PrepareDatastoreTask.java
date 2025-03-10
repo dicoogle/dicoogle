@@ -70,21 +70,22 @@ public class PrepareDatastoreTask implements Callable<MLDataset> {
     @Override
     public MLDataset call() throws Exception {
 
-        if(!request.validate())
+        if (!request.validate())
             return null;
 
-        switch (request.getDataType()){
+        switch (request.getDataType()) {
             case DICOM:
                 return new MLDicomDataset(request.getDimLevel(), request.getUids());
             case IMAGE:
-                //throw new UnsupportedOperationException("Datastore requests for image objects is not supported");
+                // throw new UnsupportedOperationException("Datastore requests for image objects is not supported");
 
                 HashMap<String, String> extraFields = new HashMap<>();
 
                 String path = this.ensureAndCreatePath();
 
                 extraFields.put("SOPInstanceUID", "SOPInstanceUID");
-                extraFields.put("SharedFunctionalGroupsSequence_PixelMeasuresSequence_PixelSpacing", "SharedFunctionalGroupsSequence_PixelMeasuresSequence_PixelSpacing");
+                extraFields.put("SharedFunctionalGroupsSequence_PixelMeasuresSequence_PixelSpacing",
+                        "SharedFunctionalGroupsSequence_PixelMeasuresSequence_PixelSpacing");
                 extraFields.put("Rows", "Rows");
                 extraFields.put("Columns", "Columns");
                 extraFields.put("NumberOfFrames", "NumberOfFrames");
@@ -100,8 +101,8 @@ public class PrepareDatastoreTask implements Callable<MLDataset> {
                     try {
 
                         // Query this image using the first available query provider
-                        Iterable<SearchResult> results = controller
-                                .query(controller.getQueryProvidersName(true).get(0), "SOPInstanceUID:" + entry.getKey(), extraFields).get();
+                        Iterable<SearchResult> results = controller.query(controller.getQueryProvidersName(true).get(0),
+                                "SOPInstanceUID:" + entry.getKey(), extraFields).get();
 
                         int c = 0;
                         for (SearchResult image : results) {
@@ -109,9 +110,10 @@ public class PrepareDatastoreTask implements Callable<MLDataset> {
                             BasicDicomObject dcm = new BasicDicomObject();
                             dcm.putString(Tag.TransferSyntaxUID, VR.CS, "1.2.840.10008.1.2.4.50");
 
-                            for(BulkAnnotation annotation: entry.getValue()){
-                                for(List<Point2D> points: annotation.getAnnotations()){
-                                    BufferedImage roi = roiExtractor.extractROI(image.get("SOPInstanceUID").toString(), annotation.getAnnotationType(), points);
+                            for (BulkAnnotation annotation : entry.getValue()) {
+                                for (List<Point2D> points : annotation.getAnnotations()) {
+                                    BufferedImage roi = roiExtractor.extractROI(image.get("SOPInstanceUID").toString(),
+                                            annotation.getAnnotationType(), points);
                                     String roiFileName = annotation.getLabel().getName() + c++;
                                     classes.add(annotation.getLabel().getName());
                                     File output = new File(path + File.separator + roiFileName + ".jpeg");
@@ -135,7 +137,7 @@ public class PrepareDatastoreTask implements Callable<MLDataset> {
         }
     }
 
-    private String ensureAndCreatePath(){
+    private String ensureAndCreatePath() {
         Path datasetsFolder = Paths.get("datasets");
         // Check if the folder exists
         if (!Files.exists(datasetsFolder)) {

@@ -29,7 +29,7 @@ import java.util.Objects;
  */
 public class MLlabel implements Comparable<MLlabel>, Serializable {
 
-    public enum CodingSchemeDesignator{
+    public enum CodingSchemeDesignator {
         DCM, // DICOM scheme code designator
         SRT, // SNOMED scheme code designator
         LN // LOINC scheme code designator
@@ -67,7 +67,7 @@ public class MLlabel implements Comparable<MLlabel>, Serializable {
      */
     private CodingSchemeDesignator codingSchemeDesignator;
 
-    public MLlabel(){
+    public MLlabel() {
         this.description = "unknown";
         this.codingSchemeDesignator = CodingSchemeDesignator.DCM;
         this.codeValue = "333333";
@@ -130,8 +130,10 @@ public class MLlabel implements Comparable<MLlabel>, Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         MLlabel mLlabel = (MLlabel) o;
         return name.equals(mLlabel.name);
     }

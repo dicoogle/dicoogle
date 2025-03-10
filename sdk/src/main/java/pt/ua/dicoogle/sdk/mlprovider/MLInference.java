@@ -45,7 +45,7 @@ public class MLInference {
     @JsonIgnore
     private Path dicomSEG;
 
-    public MLInference(){
+    public MLInference() {
         this.metrics = new HashMap<>();
         this.annotations = new ArrayList<>();
     }
@@ -90,7 +90,7 @@ public class MLInference {
         this.version = version;
     }
 
-    public boolean hasResults(){
+    public boolean hasResults() {
         return metrics != null || annotations != null;
     }
 }

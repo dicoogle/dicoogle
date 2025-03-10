@@ -201,7 +201,7 @@ public class ArchiveImpl implements ServerSettings.Archive {
         return "ArchiveImpl{" + "saveThumbnails=" + saveThumbnails + ", thumbnailSize=" + thumbnailSize
                 + ", indexerEffort=" + indexerEffort + ", dimProviders=" + dimProviders + ", defaultStorage="
                 + defaultStorage + ", dirWatcherEnabled=" + dirWatcherEnabled + ", watchDirectory='" + watchDirectory
-                + ", supportWSI='" + supportWSI + '\'' + ", mainDirectory='" + mainDirectory + '\'' + ", nodeName='" + nodeName + '\''
-                + ", callShutdown=" + callShutdown + ", encryptUsersFile=" + encryptUsersFile + '}';
+                + ", supportWSI='" + supportWSI + '\'' + ", mainDirectory='" + mainDirectory + '\'' + ", nodeName='"
+                + nodeName + '\'' + ", callShutdown=" + callShutdown + ", encryptUsersFile=" + encryptUsersFile + '}';
     }
 }

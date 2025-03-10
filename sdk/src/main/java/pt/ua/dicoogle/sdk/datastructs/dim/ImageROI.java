@@ -30,8 +30,7 @@ public class ImageROI {
 
     /** Not in use **/
     public enum FileType {
-        JPEG (".jpg", "image/jpeg"),
-        PNG (".png", "image/png");
+        JPEG(".jpg", "image/jpeg"), PNG(".png", "image/png");
 
         private final String extension;
         private final String mimeType;
@@ -41,9 +40,13 @@ public class ImageROI {
             this.mimeType = mimeType;
         }
 
-        public String getExtension() { return extension; }
+        public String getExtension() {
+            return extension;
+        }
 
-        public String getMimeType() {return mimeType; }
+        public String getMimeType() {
+            return mimeType;
+        }
     }
 
     private double x;
@@ -133,10 +136,14 @@ public class ImageROI {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         ImageROI imageROI = (ImageROI) o;
-        return Double.compare(imageROI.x, x) == 0 && Double.compare(imageROI.y, y) == 0 && width == imageROI.width && height == imageROI.height && Objects.equals(sopInstanceUID, imageROI.sopInstanceUID) && Objects.equals(uriROI, imageROI.uriROI);
+        return Double.compare(imageROI.x, x) == 0 && Double.compare(imageROI.y, y) == 0 && width == imageROI.width
+                && height == imageROI.height && Objects.equals(sopInstanceUID, imageROI.sopInstanceUID)
+                && Objects.equals(uriROI, imageROI.uriROI);
     }
 
     @Override

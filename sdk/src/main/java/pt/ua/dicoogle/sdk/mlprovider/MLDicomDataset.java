@@ -31,13 +31,13 @@ public class MLDicomDataset extends MLDataset {
     private DimLevel level;
     private List<String> dimUIDs;
 
-    public MLDicomDataset(DimLevel level){
+    public MLDicomDataset(DimLevel level) {
         super("", MLDataType.DICOM);
         this.level = level;
         dimUIDs = new ArrayList<>();
     }
 
-    public MLDicomDataset(DimLevel level, List<String> dimUIDs){
+    public MLDicomDataset(DimLevel level, List<String> dimUIDs) {
         super("", MLDataType.DICOM);
         this.level = level;
         this.dimUIDs = dimUIDs;

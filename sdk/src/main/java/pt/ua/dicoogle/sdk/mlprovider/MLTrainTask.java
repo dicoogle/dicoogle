@@ -53,14 +53,14 @@ public class MLTrainTask {
         REJECTED
     }
 
-    public MLTrainTask(String taskID, TrainingStatus  status) {
+    public MLTrainTask(String taskID, TrainingStatus status) {
         this.taskID = taskID;
         this.status = status;
     }
 
     private String taskID;
 
-    private TrainingStatus  status;
+    private TrainingStatus status;
 
     public String getTaskID() {
         return taskID;
@@ -70,11 +70,11 @@ public class MLTrainTask {
         this.taskID = taskID;
     }
 
-    public TrainingStatus  getStatus() {
+    public TrainingStatus getStatus() {
         return status;
     }
 
-    public void setStatus(TrainingStatus  status) {
+    public void setStatus(TrainingStatus status) {
         this.status = status;
     }
 }

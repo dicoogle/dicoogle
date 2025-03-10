@@ -176,7 +176,7 @@ public class Main {
         pt.ua.dicoogle.server.ControlServices.getInstance();
 
         // Register Image Reader for DICOM Objects
-        if(settings.getArchiveSettings().isSupportWSI()){
+        if (settings.getArchiveSettings().isSupportWSI()) {
             IIORegistry.getDefaultInstance().registerServiceProvider(new DicomImageReaderSpi());
             ImageIO.setUseCache(false);
             System.setProperty("dcm4che.useImageIOServiceRegistry", "true");

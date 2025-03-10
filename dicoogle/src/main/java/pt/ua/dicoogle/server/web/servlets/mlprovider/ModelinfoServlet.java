@@ -40,24 +40,25 @@ import java.io.PrintWriter;
 public class ModelinfoServlet extends HttpServlet {
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         ObjectMapper mapper = new ObjectMapper();
 
         String provider = request.getParameter("provider");
         String modelID = request.getParameter("modelID");
 
-        if(provider == null || provider.isEmpty()){
+        if (provider == null || provider.isEmpty()) {
             ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Provider was not specified");
             return;
         }
 
-        if(modelID == null || modelID.isEmpty()){
+        if (modelID == null || modelID.isEmpty()) {
             ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Model was not specified");
             return;
         }
 
         MLProviderInterface mlPlugin = PluginController.getInstance().getMachineLearningProviderByName(provider, true);
-        if(mlPlugin == null){
+        if (mlPlugin == null) {
             ResponseUtil.sendError(response, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Provider not found");
             return;
         }

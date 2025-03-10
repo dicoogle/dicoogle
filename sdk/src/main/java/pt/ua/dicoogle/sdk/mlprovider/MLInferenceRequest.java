@@ -81,7 +81,7 @@ public class MLInferenceRequest {
         this.roi = roi;
     }
 
-    public boolean hasROI(){
+    public boolean hasROI() {
         return this.roi != null;
     }
 

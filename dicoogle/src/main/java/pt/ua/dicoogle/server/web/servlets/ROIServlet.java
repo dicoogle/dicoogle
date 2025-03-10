@@ -68,19 +68,20 @@ public class ROIServlet extends HttpServlet {
         String width = request.getParameter("width");
         String height = request.getParameter("height");
 
-        if(sopInstanceUID == null || sopInstanceUID.isEmpty()){
+        if (sopInstanceUID == null || sopInstanceUID.isEmpty()) {
             response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "SOPInstanceUID provided was invalid");
             return;
         }
 
-        if(x == null || x.isEmpty() || y == null || y.isEmpty() || width == null || width.isEmpty() || height == null || height.isEmpty()){
+        if (x == null || x.isEmpty() || y == null || y.isEmpty() || width == null || width.isEmpty() || height == null
+                || height.isEmpty()) {
             response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "ROI provided was invalid");
             return;
         }
 
         List<Point2D> annotation;
         BulkAnnotation.AnnotationType annotationType = BulkAnnotation.AnnotationType.RECTANGLE;
-        try{
+        try {
             int nX = Integer.parseInt(x);
             int nY = Integer.parseInt(y);
             int nWidth = Integer.parseInt(width);
@@ -90,7 +91,7 @@ public class ROIServlet extends HttpServlet {
             Point2D bl = new Point2D(nX, nY + nHeight);
             Point2D br = new Point2D(nX + nWidth, nY + nHeight);
             annotation = Arrays.asList(tl, tr, bl, br);
-        } catch (NumberFormatException e){
+        } catch (NumberFormatException e) {
             response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "ROI provided was invalid");
             return;
         }
@@ -99,7 +100,7 @@ public class ROIServlet extends HttpServlet {
 
         BufferedImage bi = roiExtractor.extractROI(metaData, annotationType, annotation);
 
-        if(bi != null){
+        if (bi != null) {
             response.setContentType("image/jpeg");
             OutputStream out = response.getOutputStream();
             ImageIO.write(bi, "jpg", out);
@@ -119,25 +120,25 @@ public class ROIServlet extends HttpServlet {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode body = mapper.readTree(jsonString);
 
-        if(!body.has("uid")){
+        if (!body.has("uid")) {
             response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "SOPInstanceUID provided was invalid");
             return;
         }
 
-        if(!body.has("type")){
+        if (!body.has("type")) {
             response.sendError(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Annotation type must be provided");
             return;
         }
 
         String sopInstanceUID = body.get("uid").asText();
         String type = body.get("type").asText();
-        List<Point2D> points = mapper.readValue(body.get("points").toString(), new TypeReference<List<Point2D>>(){});
+        List<Point2D> points = mapper.readValue(body.get("points").toString(), new TypeReference<List<Point2D>>() {});
 
         DicomMetaData dicomMetaData = this.getDicomMetadata(sopInstanceUID);
 
         BufferedImage bi = roiExtractor.extractROI(dicomMetaData, BulkAnnotation.AnnotationType.valueOf(type), points);
 
-        if(bi != null){
+        if (bi != null) {
             response.setContentType("image/jpeg");
             OutputStream out = response.getOutputStream();
             ImageIO.write(bi, "jpg", out);
@@ -148,7 +149,7 @@ public class ROIServlet extends HttpServlet {
         response.sendError(Status.CLIENT_ERROR_NOT_FOUND.getCode(), "Could not build ROI with the provided UID");
     }
 
-    private DicomMetaData getDicomMetadata(String sop) throws IOException{
+    private DicomMetaData getDicomMetadata(String sop) throws IOException {
         return wsiCache.get(sop);
     }
 

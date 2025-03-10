@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
  * Cache used to store DicomMetadata objects temporarily, as they are quite heavy to build on-demand.
  * Used only for WSI instances.
  */
-public class WSICache extends MemoryCache<DicomMetaData>{
+public class WSICache extends MemoryCache<DicomMetaData> {
 
     private static WSICache instance = null;
     private static final String EXTENSION_GZIP = ".gz";
@@ -49,22 +49,20 @@ public class WSICache extends MemoryCache<DicomMetaData>{
     private QueryInterface queryInterface;
     private final String queryProvider;
 
-    private WSICache(){
+    private WSICache() {
         super();
-        memoryCache = CacheBuilder.newBuilder()
-                .maximumSize(maximumSize)
-                .expireAfterAccess(hoursToKeep, TimeUnit.HOURS)
+        memoryCache = CacheBuilder.newBuilder().maximumSize(maximumSize).expireAfterAccess(hoursToKeep, TimeUnit.HOURS)
                 .build(new WsiDcmLoader());
 
         List<String> dicomProviders = ServerSettingsManager.getSettings().getArchiveSettings().getDIMProviders();
-        if(!dicomProviders.isEmpty())
+        if (!dicomProviders.isEmpty())
             queryProvider = dicomProviders.iterator().next();
         else
             queryProvider = "";
     }
 
-    public static synchronized WSICache getInstance(){
-        if (instance==null){
+    public static synchronized WSICache getInstance() {
+        if (instance == null) {
             instance = new WSICache();
         }
         return instance;
@@ -78,7 +76,7 @@ public class WSICache extends MemoryCache<DicomMetaData>{
             queryInterface = PluginController.getInstance().getQueryProviderByName(queryProvider, false);
 
             URI uri = retrieveURI(sopInstanceUID);
-            if(uri == null){
+            if (uri == null) {
                 throw new IllegalArgumentException("Could not find the desired URI");
             }
 
@@ -87,7 +85,7 @@ public class WSICache extends MemoryCache<DicomMetaData>{
             DicomInputStream dis;
             StorageInputStream sis = retrieveInputStream(uri);
 
-            if(sis == null){
+            if (sis == null) {
                 throw new InvalidParameterException("Could not find the desired URI");
             }
 
@@ -106,12 +104,12 @@ public class WSICache extends MemoryCache<DicomMetaData>{
      * Helper method to retrieve the URI to
      * the file with the given SOP Instance UID
      * from the archive's DIM provider.
-
+    
      *
      * @param sop SopInstanceUID
      * @return uri of the SopInstance
      */
-    private URI retrieveURI(String sop){
+    private URI retrieveURI(String sop) {
         String query = "SOPInstanceUID:\"" + sop + '"';
 
 
@@ -131,7 +129,7 @@ public class WSICache extends MemoryCache<DicomMetaData>{
         return null;
     }
 
-    private StorageInputStream retrieveInputStream(URI uri){
+    private StorageInputStream retrieveInputStream(URI uri) {
         return PluginController.getInstance().resolveURI(uri).iterator().next();
     }
 

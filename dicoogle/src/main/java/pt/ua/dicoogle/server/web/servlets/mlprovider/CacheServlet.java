@@ -49,7 +49,7 @@ public class CacheServlet extends HttpServlet {
 
         String provider = req.getParameter("provider");
 
-        if(provider == null || provider.isEmpty()){
+        if (provider == null || provider.isEmpty()) {
             ResponseUtil.sendError(resp, Status.CLIENT_ERROR_BAD_REQUEST.getCode(), "Provider provided was invalid");
             return;
         }

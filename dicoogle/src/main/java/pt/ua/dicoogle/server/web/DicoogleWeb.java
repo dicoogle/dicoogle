@@ -207,7 +207,8 @@ public class DicoogleWeb {
                 createServletHandler(new ForceIndexing(), "/management/tasks/index"),
                 createServletHandler(new UnindexServlet(), "/management/tasks/unindex"),
                 createServletHandler(new RemoveServlet(), "/management/tasks/remove"),
-                createServletHandler(new ServicesServlet(ServicesServlet.ServiceType.STORAGE), "/management/dicom/storage"),
+                createServletHandler(new ServicesServlet(ServicesServlet.ServiceType.STORAGE),
+                        "/management/dicom/storage"),
                 createServletHandler(new ServicesServlet(ServicesServlet.ServiceType.QUERY), "/management/dicom/query"),
                 createServletHandler(new AETitleServlet(), "/management/settings/dicom"),
                 createServletHandler(new PluginsServlet(), "/plugins/*"),
@@ -227,8 +228,7 @@ public class DicoogleWeb {
                 createServletHandler(new ListAllModelsServlet(), "/ml/model/list"),
                 createServletHandler(new ModelinfoServlet(), "/ml/model/info"),
                 createServletHandler(new CacheServlet(), "/ml/cache"),
-                createServletHandler(new ImplementedMethodsServlet(), "/ml/provider/methods"),
-                webpages};
+                createServletHandler(new ImplementedMethodsServlet(), "/ml/provider/methods"), webpages};
 
         // setup the server
         server = new Server(socketAddr);

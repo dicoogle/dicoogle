@@ -41,15 +41,17 @@ import java.util.List;
 public class ListAllModelsServlet extends HttpServlet {
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         ObjectMapper mapper = new ObjectMapper();
 
         String provider = request.getParameter("provider");
         List<MLProvider> providersResponse = new ArrayList<>();
 
-        if(provider != null && !provider.isEmpty()){
-            MLProviderInterface mlPlugin = PluginController.getInstance().getMachineLearningProviderByName(provider, true);
-            if(mlPlugin.isAvailable()){
+        if (provider != null && !provider.isEmpty()) {
+            MLProviderInterface mlPlugin =
+                    PluginController.getInstance().getMachineLearningProviderByName(provider, true);
+            if (mlPlugin.isAvailable()) {
                 MLProvider p = new MLProvider(mlPlugin.getName());
                 p.setModels(mlPlugin.listModels());
                 providersResponse.add(p);
@@ -57,7 +59,7 @@ public class ListAllModelsServlet extends HttpServlet {
         } else {
             Iterable<MLProviderInterface> providers = PluginController.getInstance().getMLPlugins(true);
             providers.forEach((mlPlugin) -> {
-                if(mlPlugin.isAvailable()){
+                if (mlPlugin.isAvailable()) {
                     MLProvider p = new MLProvider(mlPlugin.getName());
                     p.setModels(mlPlugin.listModels());
                     providersResponse.add(p);

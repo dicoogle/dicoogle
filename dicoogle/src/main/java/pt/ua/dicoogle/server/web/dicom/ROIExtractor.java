@@ -52,7 +52,8 @@ public class ROIExtractor {
         this.wsiCache = WSICache.getInstance();
     }
 
-    public BufferedImage extractROI(String sopInstanceUID, BulkAnnotation.AnnotationType type, List<Point2D> annotation) {
+    public BufferedImage extractROI(String sopInstanceUID, BulkAnnotation.AnnotationType type,
+            List<Point2D> annotation) {
         DicomMetaData metaData;
         try {
             metaData = getDicomMetadata(sopInstanceUID);
@@ -63,22 +64,23 @@ public class ROIExtractor {
         return extractROI(metaData, type, annotation);
     }
 
-    public BufferedImage extractROI(DicomMetaData dicomMetaData, BulkAnnotation.AnnotationType type, List<Point2D> annotation) {
+    public BufferedImage extractROI(DicomMetaData dicomMetaData, BulkAnnotation.AnnotationType type,
+            List<Point2D> annotation) {
 
         ImageReader imageReader = getImageReader();
 
-        if(imageReader == null)
+        if (imageReader == null)
             return null;
 
-        if(dicomMetaData == null){
+        if (dicomMetaData == null) {
             return null;
         }
 
         DicomImageReadParam param;
-        try{
+        try {
             imageReader.setInput(dicomMetaData);
             param = (DicomImageReadParam) imageReader.getDefaultReadParam();
-        } catch (Exception e){
+        } catch (Exception e) {
             logger.error("Error setting image reader", e);
             return null;
         }
@@ -116,12 +118,14 @@ public class ROIExtractor {
      * @return the intersection of the annotation on the image.
      * @throws IllegalArgumentException when the annotation is not one of the supported types.
      */
-    private BufferedImage getROIFromAnnotation(BulkAnnotation.AnnotationType type, List<Point2D> annotation, WSISopDescriptor descriptor, ImageReader imageReader, DicomImageReadParam param) throws IllegalArgumentException {
-        if(notSupportedTypes.contains(type)){
+    private BufferedImage getROIFromAnnotation(BulkAnnotation.AnnotationType type, List<Point2D> annotation,
+            WSISopDescriptor descriptor, ImageReader imageReader, DicomImageReadParam param)
+            throws IllegalArgumentException {
+        if (notSupportedTypes.contains(type)) {
             throw new IllegalArgumentException("Trying to build a ROI with an unsupported annotation type");
         }
 
-        List<Point2D> constructionPoints = BulkAnnotation.getBoundingBox(type, annotation); //Points that will be used to construct the ROI.
+        List<Point2D> constructionPoints = BulkAnnotation.getBoundingBox(type, annotation); // Points that will be used to construct the ROI.
 
         Point2D annotationPoint1 = constructionPoints.get(0);
         Point2D annotationPoint2 = constructionPoints.get(3);
@@ -138,9 +142,10 @@ public class ROIExtractor {
 
         // We need to perform clipping if annotation is not a rectangle
         Shape clippingShape = null;
-        if(type != BulkAnnotation.AnnotationType.RECTANGLE){
+        if (type != BulkAnnotation.AnnotationType.RECTANGLE) {
             clippingShape = getClippingShape(type, annotation, constructionPoints.get(0));
-            if (clippingShape != null) g.setClip(clippingShape);
+            if (clippingShape != null)
+                g.setClip(clippingShape);
         }
 
         for (List<WSIFrame> matrix : frameMatrix) {
@@ -153,16 +158,20 @@ public class ROIExtractor {
                     continue;
                 }
 
-                //Calculate intersections between ROI and frame
-                Point2D framePoint1 = new Point2D(frame.getX() * descriptor.getTileWidth(), frame.getY() * descriptor.getTileHeight());
-                Point2D framePoint2 = new Point2D(framePoint1.getX() + bb.getWidth(), framePoint1.getY() + bb.getHeight());
-                Point2D intersectionPoint1 = new Point2D(Math.max(annotationPoint1.getX(), framePoint1.getX()), Math.max(annotationPoint1.getY(), framePoint1.getY()));
-                Point2D intersectionPoint2 = new Point2D(Math.min(annotationPoint2.getX(), framePoint2.getX()), Math.min(annotationPoint2.getY(), framePoint2.getY()));
+                // Calculate intersections between ROI and frame
+                Point2D framePoint1 = new Point2D(frame.getX() * descriptor.getTileWidth(),
+                        frame.getY() * descriptor.getTileHeight());
+                Point2D framePoint2 =
+                        new Point2D(framePoint1.getX() + bb.getWidth(), framePoint1.getY() + bb.getHeight());
+                Point2D intersectionPoint1 = new Point2D(Math.max(annotationPoint1.getX(), framePoint1.getX()),
+                        Math.max(annotationPoint1.getY(), framePoint1.getY()));
+                Point2D intersectionPoint2 = new Point2D(Math.min(annotationPoint2.getX(), framePoint2.getX()),
+                        Math.min(annotationPoint2.getY(), framePoint2.getY()));
 
                 int startX = (int) (intersectionPoint1.getX() - annotationPoint1.getX());
                 int startY = (int) (intersectionPoint1.getY() - annotationPoint1.getY());
 
-                if(clippingShape == null){
+                if (clippingShape == null) {
                     int endX = (int) (intersectionPoint2.getX() - annotationPoint1.getX());
                     int endY = (int) (intersectionPoint2.getY() - annotationPoint1.getY());
 
@@ -175,8 +184,8 @@ public class ROIExtractor {
                     int deltaX = frameEndX - frameStartX;
                     int deltaY = frameEndY - frameStartY;
 
-                    //This means that the frame is smaller than the intersection area
-                    //It can happen when we are on the edge of the image and the tiles do not have the dimensions stated in the DICOM file
+                    // This means that the frame is smaller than the intersection area
+                    // It can happen when we are on the edge of the image and the tiles do not have the dimensions stated in the DICOM file
                     if (deltaX > bb.getWidth()) {
                         endX = frameEndX - bb.getWidth();
                         frameEndX = bb.getWidth();
@@ -186,10 +195,9 @@ public class ROIExtractor {
                         endY = frameEndY - bb.getHeight();
                         frameEndY = bb.getHeight();
                     }
-                    g.drawImage(bb, startX, startY,
-                            endX, endY, frameStartX, frameStartY, frameEndX, frameEndY, null);
+                    g.drawImage(bb, startX, startY, endX, endY, frameStartX, frameStartY, frameEndX, frameEndY, null);
                 } else {
-                    g.drawImage(bb, startX, startY,null);
+                    g.drawImage(bb, startX, startY, null);
                 }
 
             }
@@ -208,12 +216,13 @@ public class ROIExtractor {
      * @param startingPoint starting point of the rectangle that contains the annotation
      * @return a shape to use to clip the ROI
      */
-    private Shape getClippingShape(BulkAnnotation.AnnotationType type, List<Point2D> annotation, Point2D startingPoint){
-        switch (type){
+    private Shape getClippingShape(BulkAnnotation.AnnotationType type, List<Point2D> annotation,
+            Point2D startingPoint) {
+        switch (type) {
             case POLYLINE:
             case POLYGON:
                 Polygon polygon = new Polygon();
-                for(Point2D p : annotation){
+                for (Point2D p : annotation) {
                     polygon.addPoint((int) (p.getX() - startingPoint.getX()), (int) (p.getY() - startingPoint.getY()));
                 }
                 return polygon;
@@ -224,7 +233,8 @@ public class ROIExtractor {
                 double minY = annotation.get(2).getY();
                 double maxY = annotation.get(3).getY();
 
-                return new Ellipse2D.Double(minX - startingPoint.getX(), minY - startingPoint.getY(), Math.abs(maxX - minX), Math.abs(maxY - minY));
+                return new Ellipse2D.Double(minX - startingPoint.getX(), minY - startingPoint.getY(),
+                        Math.abs(maxX - minX), Math.abs(maxY - minY));
 
             default:
                 return null;
@@ -241,10 +251,10 @@ public class ROIExtractor {
      */
     private List<List<WSIFrame>> getFrameMatrixFromAnnotation(WSISopDescriptor descriptor, List<Point2D> points) {
 
-        //Number of tiles along the x direction, number of columns in the frame matrix
+        // Number of tiles along the x direction, number of columns in the frame matrix
         int nx_tiles = (int) Math.ceil((descriptor.getTotalPixelMatrixColumns() * 1.0) / descriptor.getTileWidth());
 
-        //Number of tiles along the y direction, number of rows in the frame matrix
+        // Number of tiles along the y direction, number of rows in the frame matrix
         int ny_tiles = (int) Math.ceil((descriptor.getTotalPixelMatrixRows() * 1.0) / descriptor.getTileHeight());
 
         List<List<WSIFrame>> matrix = new ArrayList<>();
@@ -253,33 +263,34 @@ public class ROIExtractor {
         int x_c = (int) (points.get(0).getX() / descriptor.getTileWidth());
         int y_c = (int) (points.get(0).getY() / descriptor.getTileHeight());
 
-        //Annotation is completely out of bounds, no intersection possible
-        if(x_c > nx_tiles || y_c > ny_tiles)
+        // Annotation is completely out of bounds, no intersection possible
+        if (x_c > nx_tiles || y_c > ny_tiles)
             return matrix;
 
         // Calculate the ending position of the annotation in frame coordinates
         int x_e = (int) (points.get(3).getX() / descriptor.getTileWidth());
         int y_e = (int) (points.get(3).getY() / descriptor.getTileHeight());
 
-        //Annotation might be out of bonds, adjust that
-        if(x_e > (nx_tiles - 1))
+        // Annotation might be out of bonds, adjust that
+        if (x_e > (nx_tiles - 1))
             x_e = nx_tiles - 1;
 
-        if(y_e > (ny_tiles - 1))
+        if (y_e > (ny_tiles - 1))
             y_e = ny_tiles - 1;
 
-        for (int i = y_c; i <= y_e ; i++) {
+        for (int i = y_c; i <= y_e; i++) {
             matrix.add(new ArrayList<>());
             for (int j = x_c; j <= x_e; j++) {
-                WSIFrame frame = new WSIFrame(descriptor.getTileWidth(), descriptor.getTileHeight(), j, i, i * nx_tiles + j);
-                matrix.get(i-y_c).add(frame);
+                WSIFrame frame =
+                        new WSIFrame(descriptor.getTileWidth(), descriptor.getTileHeight(), j, i, i * nx_tiles + j);
+                matrix.get(i - y_c).add(frame);
             }
         }
 
         return matrix;
     }
 
-    private DicomMetaData getDicomMetadata(String sop) throws IOException{
+    private DicomMetaData getDicomMetadata(String sop) throws IOException {
         return wsiCache.get(sop);
     }
 }

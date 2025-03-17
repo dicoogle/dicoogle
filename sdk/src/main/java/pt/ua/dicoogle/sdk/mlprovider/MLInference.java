@@ -91,6 +91,6 @@ public class MLInference {
     }
 
     public boolean hasResults() {
-        return metrics != null || annotations != null;
+        return (metrics != null && !metrics.isEmpty()) || (annotations != null && !annotations.isEmpty());
     }
 }

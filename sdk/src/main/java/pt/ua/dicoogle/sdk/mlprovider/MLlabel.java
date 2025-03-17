@@ -19,6 +19,8 @@
 package pt.ua.dicoogle.sdk.mlprovider;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -67,12 +69,18 @@ public class MLlabel implements Comparable<MLlabel>, Serializable {
      */
     private CodingSchemeDesignator codingSchemeDesignator;
 
+    /**
+     * Generic meta information that might be appended to this label
+     */
+    private Map<String, Object> meta;
+
     public MLlabel() {
         this.description = "unknown";
         this.codingSchemeDesignator = CodingSchemeDesignator.DCM;
         this.codeValue = "333333";
         this.codeMeaning = "unknown";
         this.color = "#000000";
+        this.meta = new HashMap<>();
     }
 
     public MLlabel(String name) {
@@ -126,6 +134,14 @@ public class MLlabel implements Comparable<MLlabel>, Serializable {
 
     public void setCodingSchemeDesignator(CodingSchemeDesignator codingSchemeDesignator) {
         this.codingSchemeDesignator = codingSchemeDesignator;
+    }
+
+    public Map<String, Object> getMeta() {
+        return meta;
+    }
+
+    public void setMeta(Map<String, Object> meta) {
+        this.meta = meta;
     }
 
     @Override

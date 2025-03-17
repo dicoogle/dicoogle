@@ -105,8 +105,7 @@ public class DatastoreRequest {
 
         switch (dataType) {
             case DICOM:
-                if (this.dimLevel == null || this.uids == null || this.uids.isEmpty())
-                    return false;
+                return this.dimLevel != null && this.uids != null && !this.uids.isEmpty();
             case IMAGE:
                 return this.dataset != null && !this.dataset.isEmpty();
             default:

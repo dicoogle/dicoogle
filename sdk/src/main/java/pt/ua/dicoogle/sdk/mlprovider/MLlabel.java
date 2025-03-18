@@ -33,7 +33,8 @@ public class MLlabel implements Comparable<MLlabel>, Serializable {
 
     public enum CodingSchemeDesignator {
         DCM, // DICOM scheme code designator
-        SRT, // SNOMED scheme code designator
+        SRT, // SNOMED-RT scheme code designator
+        SCT, // SNOMED
         LN // LOINC scheme code designator
     }
 
@@ -48,26 +49,49 @@ public class MLlabel implements Comparable<MLlabel>, Serializable {
     private String description;
 
     /**
-     * A hex color string that specifies the color this label should have.
+     * A rgba color that specifies the color and opacity this label should have.
      */
-    private String color;
+    private int[] color;
 
     /**
      * DICOM Code Value (0008,0100) is an identifier that is unambiguous within the Coding Scheme denoted by Coding Scheme Designator (0008,0102) and Coding Scheme Version (0008,0103).
+     * This is used in SegmentedPropertyTypeCodeSequence (0062,000F).
      */
-    private String codeValue;
+    private String typeCodeValue;
 
     /**
      * DICOM Code Meaning (0008,0104), a human-readable description of the label, <br>
      * given by the combination of Code Value and Coding Scheme Designator.
+     * This is used in SegmentedPropertyTypeCodeSequence (0062,000F).
      */
-    private String codeMeaning;
+    private String typeCodeMeaning;
 
     /**
      * DICOM attribute Coding Scheme Designator (0008,0102) defines the coding scheme in which the code for a term is defined.
      * Typical values: "DCM" for DICOM defined codes, "SRT" for SNOMED and "LN" for LOINC
+     * This is used in SegmentedPropertyTypeCodeSequence (0062,000F).
      */
-    private CodingSchemeDesignator codingSchemeDesignator;
+    private CodingSchemeDesignator typeCodingSchemeDesignator;
+
+    /**
+     * DICOM Code Value (0008,0100) is an identifier that is unambiguous within the Coding Scheme denoted by Coding Scheme Designator (0008,0102) and Coding Scheme Version (0008,0103).
+     * This is used in SegmentedPropertyCategoryCodeSequence (0062,000F).
+     */
+    private String categoryCodeValue;
+
+    /**
+     * DICOM Code Meaning (0008,0104), a human-readable description of the label, <br>
+     * given by the combination of Code Value and Coding Scheme Designator.
+     * This is used in SegmentedPropertyCategoryCodeSequence (0062,000F).
+     */
+    private String categoryCodeMeaning;
+
+    /**
+     * DICOM attribute Coding Scheme Designator (0008,0102) defines the coding scheme in which the code for a term is defined.
+     * Typical values: "DCM" for DICOM defined codes, "SRT" for SNOMED and "LN" for LOINC
+     * This is used in SegmentedPropertyCategoryCodeSequence (0062,000F).
+     */
+    private CodingSchemeDesignator categoryCodingSchemeDesignator;
 
     /**
      * Generic meta information that might be appended to this label
@@ -76,10 +100,15 @@ public class MLlabel implements Comparable<MLlabel>, Serializable {
 
     public MLlabel() {
         this.description = "unknown";
-        this.codingSchemeDesignator = CodingSchemeDesignator.DCM;
-        this.codeValue = "333333";
-        this.codeMeaning = "unknown";
-        this.color = "#000000";
+        this.typeCodingSchemeDesignator = CodingSchemeDesignator.DCM;
+        this.typeCodeValue = "333333";
+        this.typeCodeMeaning = "unknown";
+
+        this.categoryCodingSchemeDesignator = CodingSchemeDesignator.DCM;
+        this.categoryCodeValue = "333333";
+        this.categoryCodeMeaning = "unknown";
+
+        this.color = new int[]{0, 0, 0, 0};
         this.meta = new HashMap<>();
     }
 
@@ -104,36 +133,60 @@ public class MLlabel implements Comparable<MLlabel>, Serializable {
         this.description = description;
     }
 
-    public String getColor() {
+    public int[] getColor() {
         return color;
     }
 
-    public void setColor(String color) {
+    public void setColor(int[] color) {
         this.color = color;
     }
 
-    public String getCodeValue() {
-        return codeValue;
+    public String getTypeCodeValue() {
+        return typeCodeValue;
     }
 
-    public void setCodeValue(String codeValue) {
-        this.codeValue = codeValue;
+    public void setTypeCodeValue(String typeCodeValue) {
+        this.typeCodeValue = typeCodeValue;
     }
 
-    public String getCodeMeaning() {
-        return codeMeaning;
+    public String getTypeCodeMeaning() {
+        return typeCodeMeaning;
     }
 
-    public void setCodeMeaning(String codeMeaning) {
-        this.codeMeaning = codeMeaning;
+    public void setTypeCodeMeaning(String typeCodeMeaning) {
+        this.typeCodeMeaning = typeCodeMeaning;
     }
 
-    public CodingSchemeDesignator getCodingSchemeDesignator() {
-        return codingSchemeDesignator;
+    public CodingSchemeDesignator getTypeCodingSchemeDesignator() {
+        return typeCodingSchemeDesignator;
     }
 
-    public void setCodingSchemeDesignator(CodingSchemeDesignator codingSchemeDesignator) {
-        this.codingSchemeDesignator = codingSchemeDesignator;
+    public void setTypeCodingSchemeDesignator(CodingSchemeDesignator typeCodingSchemeDesignator) {
+        this.typeCodingSchemeDesignator = typeCodingSchemeDesignator;
+    }
+
+    public String getCategoryCodeValue() {
+        return categoryCodeValue;
+    }
+
+    public void setCategoryCodeValue(String categoryCodeValue) {
+        this.categoryCodeValue = categoryCodeValue;
+    }
+
+    public String getCategoryCodeMeaning() {
+        return categoryCodeMeaning;
+    }
+
+    public void setCategoryCodeMeaning(String categoryCodeMeaning) {
+        this.categoryCodeMeaning = categoryCodeMeaning;
+    }
+
+    public CodingSchemeDesignator getCategoryCodingSchemeDesignator() {
+        return categoryCodingSchemeDesignator;
+    }
+
+    public void setCategoryCodingSchemeDesignator(CodingSchemeDesignator categoryCodingSchemeDesignator) {
+        this.categoryCodingSchemeDesignator = categoryCodingSchemeDesignator;
     }
 
     public Map<String, Object> getMeta() {

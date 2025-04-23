@@ -121,7 +121,7 @@ public interface StorageInterface extends DicooglePlugin {
      * @param parameters a variable list of extra parameters for the retrieve
      * @return The URI of the previously stored Object.
      */
-    public URI store(DicomObject dicomObject, Object... parameters);
+    public URI store(DicomObject dicomObject, Object... parameters) throws IOException;
 
     /**
      * Stores a new element into the storage.

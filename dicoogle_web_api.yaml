@@ -849,6 +849,69 @@ paths:
                 $ref: "#/components/schemas/Success"
         "400":
           description: Invalid supplied parameter
+  /management/settings/archive:
+    get:
+      tags:
+        - Management
+      summary: Retrieve information about this Dicoogle archive
+      operationId: getArchiveInfo
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nodeName:
+                    type: string
+                    description: the node name of the Dicoogle instance
+                    example: "DICOOGLE"
+                  dimProviders:
+                    description: the list of DICOM information providers
+                    type: array
+                    items:
+                      type: string
+                    example: ["lucene"]
+                  defaultStorage:
+                    description: the list of default storage providers
+                    type: array
+                    items:
+                      type: string
+                    example: ["filestorage"]
+    put:
+      tags:
+        - Management
+      summary: Update information about this Dicoogle archive
+      operationId: setArchiveInfo
+      parameters:
+        - in: query
+          name: nodeName
+          description: the new node name for the Dicoogle instance
+          schema:
+            type: string
+          example: MY-DICOOGLE
+        - in: query
+          name: dimProviders
+          description: the new list of DIM providers, separated by commas
+          schema:
+            type: string
+          example: lucene,sql
+        - in: query
+          name: defaultStorage
+          description: the new list of default storage providers, separated by commas
+          schema:
+            type: string
+          example: filestorage,s3
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          description: Invalid supplied parameter
   /plugins:
     get:
       tags:

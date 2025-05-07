@@ -213,6 +213,7 @@ public class DicoogleWeb {
                 createServletHandler(new ServicesServlet(ServicesServlet.ServiceType.STORAGE), "/management/dicom/storage"),
                 createServletHandler(new ServicesServlet(ServicesServlet.ServiceType.QUERY), "/management/dicom/query"),
                 createServletHandler(new AETitleServlet(), "/management/settings/dicom"),
+                createServletHandler(new ArchiveSettingsServlet(), "/management/settings/archive"),
                 createServletHandler(new PluginsServlet(), "/plugins/*"),
                 createServletHandler(new PresetsServlet(), "/presets/*"),
                 createServletHandler(new WebUIServlet(), "/webui"), createWebUIModuleServletHandler(),

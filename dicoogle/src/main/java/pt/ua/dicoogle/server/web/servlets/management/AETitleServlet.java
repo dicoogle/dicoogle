@@ -41,8 +41,8 @@ public class AETitleServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        List<Pair> mpairs = new ArrayList<>();
-        mpairs.add(new ResponseUtil.Pair("aetitle",
+        List<Pair<?>> mpairs = new ArrayList<>();
+        mpairs.add(new ResponseUtil.Pair<>("aetitle",
                 ServerSettingsManager.getSettings().getDicomServicesSettings().getAETitle()));
 
         ResponseUtil.objectResponse(resp, mpairs);

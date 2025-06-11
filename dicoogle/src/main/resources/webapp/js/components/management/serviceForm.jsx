@@ -83,8 +83,8 @@ export default class ServiceForm extends React.Component {
           <div style={this.statusStyle()} />
         </div>
         <div className="col-xs-4">
-          <div className="inline_block">Hostname</div>
-          <div className="inline_block" style={{ marginLeft: "1em"}}>
+          <div className="inline_block" style={{ marginRight: "1em"}}>Hostname</div>
+          <div className="inline_block">
             <FormGroup
               validationState={this.isPortValid() ? "success" : "error"}
             >
@@ -102,8 +102,8 @@ export default class ServiceForm extends React.Component {
         </div>
         <div className="col-xs-3">
           <div className="data-table">
-            <div className="inline_block">Port</div>
-            <div className="inline_block" style={{ marginLeft: "1em" }}>
+            <div className="inline_block" style={{ marginRight: "1em" }}>Port</div>
+            <div className="inline_block">
               <FormGroup
                 validationState={this.isPortValid() ? "success" : "error"}
               >

@@ -48,6 +48,9 @@ const UserStore = Reflux.createStore({
     }
 
     if (!this.dicoogle.isAuthenticated()) {
+      this.trigger({
+        isLoggedIn: false,
+      });
       return;
     }
 

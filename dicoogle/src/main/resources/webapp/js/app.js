@@ -172,7 +172,7 @@ class App extends React.Component {
       lastLocation: "search"
     });
     this.needsPluginUpdate = true;
-    this.context.router.history.push("/login");
+    this.context.router.push("/login");
   }
 
   render() {

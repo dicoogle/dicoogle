@@ -329,8 +329,8 @@ public class InferServlet extends HttpServlet {
         for (BulkAnnotation ann : prediction.getAnnotations()) {
             for (List<Point2D> points : ann.getAnnotations()) {
                 for (Point2D p : points) {
-                    p.setX((p.getX() + tl.getX()) * scale);
-                    p.setY((p.getY() + tl.getY()) * scale);
+                    p.setX((p.getX() + tl.getX()) / scale);
+                    p.setY((p.getY() + tl.getY()) / scale);
                 }
             }
         }

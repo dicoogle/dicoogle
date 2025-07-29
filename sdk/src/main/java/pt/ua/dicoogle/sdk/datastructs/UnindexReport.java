@@ -152,8 +152,6 @@ public final class UnindexReport implements Serializable {
      * for reasons other than the files not being found.
      */
     public long failedFileCount() {
-        return this.failures.stream()
-                .mapToLong(f -> f.urisAffected.size())
-                .sum();
+        return this.failures.stream().mapToLong(f -> f.urisAffected.size()).sum();
     }
 }

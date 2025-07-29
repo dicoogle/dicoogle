@@ -244,8 +244,8 @@ public class ImageServlet extends HttpServlet {
                     }
                 }
             }
-            Iterator<SearchResult> it = pc
-                    .query(qt, providers, "SOPInstanceUID:\"" + sopInstanceUID + '"').get().iterator();
+            Iterator<SearchResult> it =
+                    pc.query(qt, providers, "SOPInstanceUID:\"" + sopInstanceUID + '"').get().iterator();
             if (!it.hasNext()) {
                 throw new IOException("No such image of SOPInstanceUID " + sopInstanceUID);
             }

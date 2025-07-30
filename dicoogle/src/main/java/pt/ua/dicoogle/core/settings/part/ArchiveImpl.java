@@ -18,6 +18,7 @@
  */
 package pt.ua.dicoogle.core.settings.part;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -43,7 +44,7 @@ public class ArchiveImpl implements ServerSettings.Archive {
         a.indexerEffort = 100;
         a.dirWatcherEnabled = false;
         a.watchDirectory = "";
-        a.supportWSI = false;
+        a.useIIORegistry = false;
 
         // Note: make it `true` in Dicoogle 4
         a.callShutdown = false;
@@ -77,8 +78,9 @@ public class ArchiveImpl implements ServerSettings.Archive {
     @JsonProperty("watch-directory")
     private String watchDirectory;
 
-    @JsonProperty(value = "support-wsi", defaultValue = "false")
-    private boolean supportWSI;
+    @JsonProperty(value = "use-iio-registry", defaultValue = "false")
+    @JsonAlias({ "support-wsi" })
+    private boolean useIIORegistry;
 
     @JsonProperty(value = "encrypt-users-file", defaultValue = "false")
     private boolean encryptUsersFile;
@@ -158,12 +160,12 @@ public class ArchiveImpl implements ServerSettings.Archive {
         this.watchDirectory = watchDirectory;
     }
 
-    public boolean isSupportWSI() {
-        return supportWSI;
+    public boolean isUseIIORegistry() {
+        return useIIORegistry;
     }
 
-    public void setSupportWSI(boolean supportWSI) {
-        this.supportWSI = supportWSI;
+    public void setUseIIORegistry(boolean useIIORegistry) {
+        this.useIIORegistry = useIIORegistry;
     }
 
     @Override
@@ -201,7 +203,7 @@ public class ArchiveImpl implements ServerSettings.Archive {
         return "ArchiveImpl{" + "saveThumbnails=" + saveThumbnails + ", thumbnailSize=" + thumbnailSize
                 + ", indexerEffort=" + indexerEffort + ", dimProviders=" + dimProviders + ", defaultStorage="
                 + defaultStorage + ", dirWatcherEnabled=" + dirWatcherEnabled + ", watchDirectory='" + watchDirectory
-                + ", supportWSI='" + supportWSI + '\'' + ", mainDirectory='" + mainDirectory + '\'' + ", nodeName='"
+                + ", useIIORegistry='" + useIIORegistry + '\'' + ", mainDirectory='" + mainDirectory + '\'' + ", nodeName='"
                 + nodeName + '\'' + ", callShutdown=" + callShutdown + ", encryptUsersFile=" + encryptUsersFile + '}';
     }
 }

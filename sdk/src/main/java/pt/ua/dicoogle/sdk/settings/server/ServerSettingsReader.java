@@ -19,6 +19,7 @@
 
 package pt.ua.dicoogle.sdk.settings.server;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -89,8 +90,14 @@ public interface ServerSettingsReader {
         @JsonGetter("watch-directory")
         String getWatchDirectory();
 
-        @JsonGetter("support-wsi")
-        boolean isSupportWSI();
+        /** Whether to use the Image I/O registry
+         * for DICOM image readers and writers.
+         *
+         * This is particularly useful for WSI support.
+         */
+        @JsonGetter("use-iio-registry")
+        @JsonAlias({ "support-wsi"})
+        boolean isUseIIORegistry();
 
         @JsonGetter("dim-provider")
         @JacksonXmlElementWrapper(localName = "dim-providers")

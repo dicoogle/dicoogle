@@ -8,6 +8,7 @@
         <thumbnail-size>128</thumbnail-size>
         <main-directory>/opt/my-data</main-directory>
         <indexer-effort>98</indexer-effort>
+        <support-wsi>true</support-wsi>
         <dim-providers>
             <dim-provider>lucene</dim-provider>
         </dim-providers>

@@ -68,7 +68,7 @@ public interface ServerSettings extends ServerSettingsReader {
 
         void setDirectoryWatcherEnabled(boolean watch);
 
-        void setSupportWSI(boolean supportWSI);
+        void setUseIIORegistry(boolean useIIORegistry);
 
         void setEncryptUsersFile(boolean encrypt);
 

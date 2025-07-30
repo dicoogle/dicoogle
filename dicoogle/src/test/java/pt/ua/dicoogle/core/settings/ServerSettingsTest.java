@@ -72,6 +72,7 @@ public class ServerSettingsTest {
         assertEquals("dicoogle01", ar.getNodeName());
         assertEquals(true, ar.isEncryptUsersFile());
         assertEquals(true, ar.isCallShutdown());
+        assertEquals(true, ar.isUseIIORegistry());
 
         assertSameContent(Collections.singleton("lucene"), ar.getDIMProviders());
         assertSameContent(Collections.singleton("filestorage"), ar.getDefaultStorage());

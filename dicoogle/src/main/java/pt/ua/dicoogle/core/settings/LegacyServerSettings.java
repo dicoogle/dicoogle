@@ -1217,7 +1217,7 @@ public class LegacyServerSettings implements ServerSettings {
         }
 
         @Override
-        public void setSupportWSI(boolean supportWSI) {}
+        public void setUseIIORegistry(boolean useIIORegistry) {}
 
         @Override
         public void setDirectoryWatcherEnabled(boolean watch) {
@@ -1280,9 +1280,9 @@ public class LegacyServerSettings implements ServerSettings {
             return LegacyServerSettings.this.getWatchDirectory();
         }
 
-        @JsonGetter("support-wsi")
+        @JsonGetter("use-iio-registry")
         @Override
-        public boolean isSupportWSI() {
+        public boolean isUseIIORegistry() {
             return false;
         }
 

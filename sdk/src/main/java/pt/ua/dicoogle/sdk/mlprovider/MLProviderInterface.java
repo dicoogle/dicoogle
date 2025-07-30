@@ -25,12 +25,21 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Interface to define Machine Learning providers.
+ * Experimental interface to define Machine Learning providers.
+ *
  * A machine learning provider can be a remote service, hosted on the cloud, or a simple remote/local server
  * that has machine learning algorithms installed for problem solving.
  * Machine learning providers can work with either image or csv datasets.
  * The purpose of this interface is to provide a way
  * to integrate with services such as Google's Vertex API or Amazon's SageMaker API.
+ *
+ * <p>
+ * Note: This API is considered <b>not stable</b>,
+ * meaning that it may change in substantial ways upon any new release,
+ * even on a patch release.
+ * See the <a href="https://github.com/dicoogle/dicoogle/issues/735">tracker issue</a>
+ * for more information on the current status of this API.
+ * </p>
  *
  * @author Rui Jesus
  */

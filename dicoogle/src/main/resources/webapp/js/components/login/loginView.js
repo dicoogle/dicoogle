@@ -74,6 +74,7 @@ const LoginView = createReactClass({
                   value={this.state.username}
                   onChange={this.handleUsernameChange}
                   onKeyDown={this.handleKeyDown}
+                  autoComplete="username"
                 />
                 <input
                   ref="pass"
@@ -85,6 +86,7 @@ const LoginView = createReactClass({
                   value={this.state.password}
                   onChange={this.handlePasswordChange}
                   onKeyDown={this.handleKeyDown}
+                  autoComplete="current-password"
                 />
                 {this.state.failed && (
                   <p style={{ color: "red" }}>

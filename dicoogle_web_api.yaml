@@ -1139,7 +1139,7 @@ paths:
     post:
       tags:
         - Machine Learning
-      summary: Datastore endpoint for machine learning providers, used to upload images and labels to services
+      summary: "[EXPERIMENTAL] Datastore endpoint for machine learning providers, used to upload images and labels to services"
       operationId: mlDatastore
       requestBody:
         description: Describes the data to upload to the provider
@@ -1157,7 +1157,7 @@ paths:
     post:
       tags:
         - Machine Learning
-      summary: Infer endpoint for a single object, image or DICOM object (series or sop instance). It has split functionality for WSI images.
+      summary: "[EXPERIMENTAL] Infer endpoint for a single object, image or DICOM object (series or sop instance). It has split functionality for WSI images."
       operationId: mlInferSingle
       parameters:
         - in: query
@@ -1222,7 +1222,7 @@ paths:
     post:
       tags:
         - Machine Learning
-      summary: Infer endpoint for a bulk of objects, images or DICOM objects (series or sop instance)
+      summary: "[EXPERIMENTAL] Infer endpoint for a bulk of objects, images or DICOM objects (series or sop instance)"
       operationId: mlInferBulk
       responses:
         '501':
@@ -1231,7 +1231,7 @@ paths:
     post:
       tags:
         - Machine Learning
-      summary: Request a training task
+      summary: "[EXPERIMENTAL] Request a training task"
       operationId: mlTrain
       requestBody:
         required: true
@@ -1247,7 +1247,7 @@ paths:
     delete:
       tags:
         - Machine Learning
-      summary: Cancel a training
+      summary: "[EXPERIMENTAL] Cancel a training"
       operationId: mlCancelTrain
       requestBody:
         required: true
@@ -1264,7 +1264,7 @@ paths:
     get:
       tags:
         - Machine Learning
-      summary: Get a list of models from all providers or a specific one
+      summary: "[EXPERIMENTAL] Get a list of models from all providers or a specific one"
       operationId: mlModelList
       parameters:
         - in: query
@@ -1288,7 +1288,7 @@ paths:
     get:
       tags:
         - Machine Learning
-      summary: Get training info a model
+      summary: "[EXPERIMENTAL] Get training info a model"
       operationId: mlModelInfo
       parameters:
         - in: query
@@ -1316,7 +1316,7 @@ paths:
     post:
       tags:
         - Machine Learning
-      summary: Cache DICOM objects on a provider
+      summary: "[EXPERIMENTAL] Cache DICOM objects on a provider"
       operationId: mlCache
       parameters:
         - in: query
@@ -1341,7 +1341,7 @@ paths:
     get:
       tags:
         - Machine Learning
-      summary: Retrieves the implemented methods of the machine learning interface from a provider
+      summary: "[EXPERIMENTAL] Retrieves the implemented methods of the machine learning interface from a provider"
       operationId: mlCache
       parameters:
         - in: query

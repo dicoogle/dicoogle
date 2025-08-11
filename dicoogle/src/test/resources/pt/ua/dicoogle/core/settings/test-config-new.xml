@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <config>
-    <web-server autostart="true" port="8282">
+    <web-server autostart="true" port="8282" hostname="127.0.0.1">
         <allowed-origins>test.dicoogle.com</allowed-origins>
     </web-server>
     <archive>
@@ -8,6 +8,7 @@
         <thumbnail-size>128</thumbnail-size>
         <main-directory>/opt/my-data</main-directory>
         <indexer-effort>98</indexer-effort>
+        <support-wsi>true</support-wsi>
         <dim-providers>
             <dim-provider>lucene</dim-provider>
         </dim-providers>
@@ -80,7 +81,7 @@
 
         <storage autostart="true" port="6777" />
 
-        <query-retrieve autostart="false" port="1033" >
+        <query-retrieve autostart="false" port="1033" hostname="192.168.1.0">
             <rsp-delay>1</rsp-delay>
             <dimse-rsp-timeout>50</dimse-rsp-timeout>
             <idle-timeout>51</idle-timeout>

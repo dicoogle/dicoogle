@@ -34,17 +34,20 @@ public class WebServerImpl implements ServerSettings.WebServer {
     private boolean autostart;
     @JacksonXmlProperty(isAttribute = true, localName = "port")
     private int port;
+    @JacksonXmlProperty(isAttribute = true, localName = "hostname")
+    private String hostname;
 
     public WebServerImpl() {}
 
-    public WebServerImpl(boolean autostart, int port, String allowedOrigins) {
+    public WebServerImpl(boolean autostart, int port, String hostname, String allowedOrigins) {
         this.autostart = autostart;
         this.port = port;
+        this.hostname = hostname;
         this.allowedOrigins = allowedOrigins;
     }
 
     public static WebServerImpl createDefault() {
-        return new WebServerImpl(true, 8080, null);
+        return new WebServerImpl(true, 8080, null, null);
     }
 
     @JsonProperty("allowed-origins")
@@ -68,6 +71,16 @@ public class WebServerImpl implements ServerSettings.WebServer {
     @Override
     public void setPort(int port) {
         this.port = port;
+    }
+
+    @Override
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
+
+    @Override
+    public String getHostname() {
+        return this.hostname;
     }
 
     @Override

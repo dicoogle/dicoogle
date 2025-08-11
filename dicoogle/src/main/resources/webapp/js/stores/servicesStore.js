@@ -8,9 +8,11 @@ const ServicesStore = Reflux.createStore({
   init: function() {
     this._storageRunning = false;
     this._storagePort = 0;
+    this._storageHostname = '';
     this._storageAutostart = false;
     this._queryRunning = false;
     this._queryPort = 0;
+    this._queryHostname = '';
     this._queryAutostart = false;
 
     this._querySettings = {
@@ -26,9 +28,11 @@ const ServicesStore = Reflux.createStore({
     this._contents = {
       storageRunning: false,
       storagePort: 0,
+      storageHostname: '',
       storageAutostart: false,
       queryRunning: false,
       queryPort: 0,
+      queryHostname: '',
       queryAutostart: false,
       querySettings: this._querySettings
     };
@@ -46,6 +50,7 @@ const ServicesStore = Reflux.createStore({
 
       this._contents.storageRunning = data.isRunning;
       this._contents.storagePort = data.port;
+      this._contents.storageHostname = data.hostname;
       this._contents.storageAutostart = data.autostart;
       this.trigger(this._contents);
     });
@@ -61,6 +66,7 @@ const ServicesStore = Reflux.createStore({
 
       this._contents.queryRunning = data.isRunning;
       this._contents.queryPort = data.port;
+      this._contents.queryHostname = data.hostname;
       this._contents.queryAutostart = data.autostart;
       this.trigger(this._contents);
     });
@@ -111,6 +117,23 @@ const ServicesStore = Reflux.createStore({
     });
   },
 
+  onSetStorageHostname(hostname) {
+    // using generic request to set hostname
+    // (not yet supported by dicoogle-client)
+    this.dicoogle.request('POST', this.dicoogle.Endpoints.STORAGE_SERVICE)
+      .query({ hostname })
+      .end((error, _response) => {
+        if (error) {
+          console.error("Dicoogle service error", error);
+          this.trigger({ error: "Dicoogle service error" });
+          return;
+        }
+
+        this._contents.storageHostname = hostname;
+        this.trigger(this._contents);
+      });
+  },
+
   onSetQuery(running) {
     const callback = error => {
       if (error) {
@@ -154,6 +177,23 @@ const ServicesStore = Reflux.createStore({
       this._contents.queryPort = port;
       this.trigger(this._contents);
     });
+  },
+
+  onSetQueryHostname(hostname) {
+    // using generic request to set hostname
+    // (not yet supported by dicoogle-client)
+    this.dicoogle.request('POST', this.dicoogle.Endpoints.QR_SERVICE)
+      .query({ hostname })
+      .end((error, _response) => {
+        if (error) {
+          console.error("Dicoogle service error", error);
+          this.trigger({ error: "Dicoogle service error" });
+          return;
+        }
+
+        this._contents.queryHostname = hostname;
+        this.trigger(this._contents);
+      });
   },
 
   onGetQuerySettings() {

@@ -37,16 +37,20 @@ public class StorageImpl implements ServerSettings.ServiceBase {
     private boolean autostart;
     @JacksonXmlProperty(isAttribute = true)
     private int port;
+    @JacksonXmlProperty(isAttribute = true)
+    private String hostname;
 
     @JsonCreator
     public StorageImpl(@JacksonXmlProperty(localName = "autostart") boolean autostart,
-            @JacksonXmlProperty(localName = "port") int port) {
+            @JacksonXmlProperty(localName = "port") int port,
+            @JacksonXmlProperty(localName = "hostname") String hostname) {
         this.autostart = autostart;
         this.port = port;
+        this.hostname = hostname;
     }
 
     public static StorageImpl createDefault() {
-        return new StorageImpl(true, 6666);
+        return new StorageImpl(true, 6666, null);
     }
 
     @Override
@@ -70,8 +74,18 @@ public class StorageImpl implements ServerSettings.ServiceBase {
     }
 
     @Override
+    public String getHostname() {
+        return hostname;
+    }
+
+    @Override
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
+
+    @Override
     public String toString() {
-        return "StorageImpl{" + "autostart=" + autostart + ", port=" + port + '}';
+        return "StorageImpl{" + "autostart=" + autostart + ", port=" + port + ", hostname=" + hostname + '}';
     }
 
     @Override

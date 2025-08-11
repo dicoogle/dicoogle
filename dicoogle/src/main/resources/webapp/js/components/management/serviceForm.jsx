@@ -13,12 +13,15 @@ export default class ServiceForm extends React.Component {
         PropTypes.string.isRequired,
         PropTypes.number.isRequired
       ]).isRequired,
+      hostname: PropTypes.string.isRequired,
       extraSettings: PropTypes.node,
       onStartService: PropTypes.func.isRequired,
       onStopService: PropTypes.func.isRequired,
       onChangePort: PropTypes.func.isRequired,
+      onChangeHostname: PropTypes.func.isRequired,
       onToggleAutostart: PropTypes.func.isRequired,
-      onSubmitPort: PropTypes.func.isRequired
+      onSubmitPort: PropTypes.func.isRequired,
+      onSubmitHostname: PropTypes.func.isRequired,
     };
   }
 
@@ -26,6 +29,8 @@ export default class ServiceForm extends React.Component {
     super(props);
     this.handlePortChange = this.handlePortChange.bind(this);
     this.handlePortKeyPress = this.handlePortKeyPress.bind(this);
+    this.handleHostnameChange = this.handleHostnameChange.bind(this);
+    this.handleHostnameKeyPress = this.handleHostnameKeyPress.bind(this);
   }
 
   isPortValid() {
@@ -48,6 +53,16 @@ export default class ServiceForm extends React.Component {
     }
   }
 
+  handleHostnameKeyPress(e) {
+    if (e.keyCode === 13) {
+      this.props.onSubmitHostname(this.props.hostname);
+    }
+  }
+
+  handleHostnameChange(e) {
+    this.props.onChangeHostname(e.target.value);
+  }
+
   statusStyle() {
     return {
       display: "block",
@@ -63,11 +78,29 @@ export default class ServiceForm extends React.Component {
   render() {
     return (
       <div className="row">
-        <div className="col-xs-4">
+        <div className="col-xs-2">
           <p>{this.props.caption}</p>
           <div style={this.statusStyle()} />
         </div>
         <div className="col-xs-4">
+          <div className="inline_block">Hostname</div>
+          <div className="inline_block" style={{ marginLeft: "1em"}}>
+            <FormGroup
+              validationState={this.isPortValid() ? "success" : "error"}
+            >
+              <FormControl
+                type="text"
+                value={this.props.hostname}
+                placeholder="0.0.0.0"
+                disabled={this.props.disabledHostname && "disabled"}
+                onChange={this.handleHostnameChange}
+                onKeyDown={this.handleHostnameKeyPress}
+                />
+              {this.props.dirtyHostname && <FormControl.Feedback />}
+            </FormGroup>
+          </div>
+        </div>
+        <div className="col-xs-3">
           <div className="data-table">
             <div className="inline_block">Port</div>
             <div className="inline_block" style={{ marginLeft: "1em" }}>
@@ -98,7 +131,7 @@ export default class ServiceForm extends React.Component {
             </div>
           </div>
         </div>
-        <div className="col-xs-4">
+        <div className="col-xs-3">
           <div className="data-table">
             <div className="inline_block">
               {this.props.running ? (

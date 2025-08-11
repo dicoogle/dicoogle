@@ -10,7 +10,7 @@
     <parent>
         <groupId>pt.ua.ieeta</groupId>
         <artifactId>dicoogle-all</artifactId>
-        <version>3.4.1</version>
+        <version>3.5.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -377,12 +377,6 @@
         </dependency>
 
         <dependency>
-            <groupId>dcm4che</groupId>
-            <artifactId>dcm4che-imageio</artifactId>
-            <version>${dcm4che.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.jdom</groupId>
             <artifactId>jdom2</artifactId>
             <version>2.0.6.1</version>
@@ -464,6 +458,21 @@
             <groupId>net.kencochrane.raven</groupId>
             <artifactId>raven-log4j2</artifactId>
             <version>5.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>dcm4che</groupId>
+            <artifactId>dcm4che-imageio</artifactId>
+            <version>${dcm4che.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.dcm4che</groupId>
+            <artifactId>dcm4che-imageio</artifactId>
+            <version>3.3.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.dcm4che</groupId>
+            <artifactId>dcm4che-core</artifactId>
+            <version>3.3.8</version>
         </dependency>
     </dependencies>
 </project>

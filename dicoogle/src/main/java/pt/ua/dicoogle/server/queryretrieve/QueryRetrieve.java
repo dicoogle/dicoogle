@@ -136,6 +136,7 @@ public class QueryRetrieve extends DicomNetwork {
         this.localAE.register(new VerificationService());
 
         this.localConn.setPort(s.getPort());
+        this.localConn.setHostname(s.getHostname());
         this.localConn.setMaxScpAssociations(s.getMaxClientAssoc());
         this.localConn.setAcceptTimeout(s.getAcceptTimeout());
         this.localConn.setConnectTimeout(s.getConnectionTimeout());

@@ -33,10 +33,13 @@ import java.util.List;
  */
 public interface ServerSettings extends ServerSettingsReader {
 
+    /** Base interface for reading and writing service settings */
     interface ServiceBase extends ServerSettingsReader.ServiceBase {
         void setAutostart(boolean autostart);
 
         void setPort(int port);
+
+        void setHostname(String hostname);
     }
 
     @Override
@@ -64,6 +67,8 @@ public interface ServerSettings extends ServerSettingsReader {
         void setWatchDirectory(String dir);
 
         void setDirectoryWatcherEnabled(boolean watch);
+
+        void setUseIIORegistry(boolean useIIORegistry);
 
         void setEncryptUsersFile(boolean encrypt);
 

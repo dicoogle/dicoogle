@@ -47,7 +47,6 @@ import org.dcm4che2.net.service.VerificationService;
 
 
 import pt.ua.dicoogle.plugins.PluginController;
-import pt.ua.dicoogle.sdk.IndexerInterface;
 import pt.ua.dicoogle.sdk.StorageInterface;
 import pt.ua.dicoogle.sdk.settings.server.ServerSettings;
 
@@ -121,7 +120,7 @@ public class DicomStorage extends StorageService {
 
 
         nc.setPort(settings.getDicomServicesSettings().getStorageSettings().getPort());
-
+        nc.setHostname(settings.getDicomServicesSettings().getStorageSettings().getHostname());
 
         this.nae.setInstalled(true);
         this.nc.setMaxScpAssociations(Integer.parseInt(System.getProperty("dicoogle.cstore.maxScpAssociations", "50")));

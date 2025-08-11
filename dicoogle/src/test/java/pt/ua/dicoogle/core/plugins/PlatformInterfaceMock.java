@@ -25,6 +25,7 @@ import pt.ua.dicoogle.sdk.StorageInterface;
 import pt.ua.dicoogle.sdk.core.DicooglePlatformInterface;
 import pt.ua.dicoogle.sdk.datastructs.Report;
 import pt.ua.dicoogle.sdk.datastructs.SearchResult;
+import pt.ua.dicoogle.sdk.datastructs.UnindexReport;
 import pt.ua.dicoogle.sdk.datastructs.dim.DimLevel;
 import pt.ua.dicoogle.sdk.settings.server.ServerSettingsReader;
 import pt.ua.dicoogle.sdk.task.JointQueryTask;
@@ -33,6 +34,7 @@ import pt.ua.dicoogle.sdk.task.Task;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class PlatformInterfaceMock implements DicooglePlatformInterface {
 
@@ -117,6 +119,24 @@ public class PlatformInterfaceMock implements DicooglePlatformInterface {
 
     @Override
     public List<Task<Report>> index(URI path) {
+        return null;
+    }
+
+    @Override
+    public List<Task<Report>> index(Collection<URI> paths) {
+        return null;
+    }
+
+    @Override
+    public void unindex(URI path) {}
+
+    @Override
+    public List<Task<UnindexReport>> unindex(Collection<URI> paths) {
+        return null;
+    }
+
+    @Override
+    public List<Task<UnindexReport>> unindex(Collection<URI> paths, Consumer<Collection<URI>> progressCallback) {
         return null;
     }
 

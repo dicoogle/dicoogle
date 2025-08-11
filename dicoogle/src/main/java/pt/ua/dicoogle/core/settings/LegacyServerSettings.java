@@ -411,6 +411,16 @@ public class LegacyServerSettings implements ServerSettings {
         }
 
         @Override
+        public void setHostname(String hostname) {
+            // no-op, not supported by legacy settings
+        }
+
+        @Override
+        public String getHostname() {
+            return null;
+        }
+
+        @Override
         public String getAllowedOrigins() {
             return this.accessControlAllowOrigins;
         }
@@ -1207,6 +1217,9 @@ public class LegacyServerSettings implements ServerSettings {
         }
 
         @Override
+        public void setUseIIORegistry(boolean useIIORegistry) {}
+
+        @Override
         public void setDirectoryWatcherEnabled(boolean watch) {
             LegacyServerSettings.this.setDirectoryWatcherEnabled(watch);
         }
@@ -1265,6 +1278,12 @@ public class LegacyServerSettings implements ServerSettings {
         @Override
         public String getWatchDirectory() {
             return LegacyServerSettings.this.getWatchDirectory();
+        }
+
+        @JsonGetter("use-iio-registry")
+        @Override
+        public boolean isUseIIORegistry() {
+            return false;
         }
 
         @JsonGetter("dim-provider")
@@ -1472,6 +1491,11 @@ public class LegacyServerSettings implements ServerSettings {
             }
 
             @Override
+            public void setHostname(String s) {
+                // no-op, not supported by legacy settings
+            }
+
+            @Override
             public boolean isAutostart() {
                 return isStorageAutostart();
             }
@@ -1479,6 +1503,11 @@ public class LegacyServerSettings implements ServerSettings {
             @Override
             public int getPort() {
                 return getStoragePort();
+            }
+
+            @Override
+            public String getHostname() {
+                return null;
             }
         };
     }
@@ -1503,6 +1532,11 @@ public class LegacyServerSettings implements ServerSettings {
             @Override
             public void setPort(int i) {
                 LegacyServerSettings.this.setWlsPort(i);
+            }
+
+            @Override
+            public void setHostname(String hostname) {
+                // no-op, not supported by legacy settings
             }
 
             @Override
@@ -1603,6 +1637,11 @@ public class LegacyServerSettings implements ServerSettings {
             @Override
             public int getPort() {
                 return getWlsPort();
+            }
+
+            @Override
+            public String getHostname() {
+                return null;
             }
         };
     }

@@ -23,6 +23,8 @@ import org.apache.commons.io.FileUtils;
 import org.restlet.resource.ServerResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pt.ua.dicoogle.core.mlprovider.DatastoreRequest;
+import pt.ua.dicoogle.core.mlprovider.PrepareDatastoreTask;
 import pt.ua.dicoogle.core.settings.ServerSettingsManager;
 import pt.ua.dicoogle.plugins.webui.WebUIPlugin;
 import pt.ua.dicoogle.plugins.webui.WebUIPluginManager;
@@ -31,6 +33,7 @@ import pt.ua.dicoogle.sdk.datastructs.Report;
 import pt.ua.dicoogle.sdk.datastructs.UnindexReport;
 import pt.ua.dicoogle.sdk.datastructs.SearchResult;
 import pt.ua.dicoogle.sdk.datastructs.dim.DimLevel;
+import pt.ua.dicoogle.sdk.mlprovider.*;
 import pt.ua.dicoogle.sdk.settings.ConfigurationHolder;
 import pt.ua.dicoogle.sdk.task.JointQueryTask;
 import pt.ua.dicoogle.sdk.task.Task;
@@ -90,6 +93,9 @@ public class PluginController {
     // Task Managers for Queries
     private TaskManager taskManagerQueries =
             new TaskManager(Integer.parseInt(System.getProperty("dicoogle.taskManager.nQueryThreads", "4")));
+
+    private final TaskManager taskManagerML =
+            new TaskManager(Integer.parseInt(System.getProperty("dicoogle.taskManager.nMLThreads", "1")));
 
     /** Whether to shut down Dicoogle when a plugin is marked as dead */
     private static boolean DEAD_PLUGIN_KILL_SWITCH =
@@ -217,7 +223,7 @@ public class PluginController {
     private void applySettings(PluginSet set, ConfigurationHolder holder) {
         // provide platform to each plugin interface
         final Collection<Collection<? extends DicooglePlugin>> all = Arrays.asList(set.getStoragePlugins(),
-                set.getIndexPlugins(), set.getQueryPlugins(), set.getJettyPlugins());
+                set.getIndexPlugins(), set.getQueryPlugins(), set.getJettyPlugins(), set.getMLPlugins());
         for (Collection<? extends DicooglePlugin> interfaces : all) {
             if (interfaces == null)
                 continue;
@@ -359,6 +365,19 @@ public class PluginController {
 
     public Collection<JettyPluginInterface> getServletPlugins() {
         return this.getServletPlugins(true);
+    }
+
+    public Collection<MLProviderInterface> getMLPlugins(boolean onlyEnabled) {
+        List<MLProviderInterface> plugins = new ArrayList<>();
+        for (PluginSet pSet : pluginSets) {
+            for (MLProviderInterface ml : pSet.getMLPlugins()) {
+                if (!ml.isEnabled() && onlyEnabled) {
+                    continue;
+                }
+                plugins.add(ml);
+            }
+        }
+        return plugins;
     }
 
     public Collection<String> getPluginSetNames() {
@@ -524,6 +543,16 @@ public class PluginController {
         return null;
     }
 
+    public MLProviderInterface getMachineLearningProviderByName(String name, boolean onlyEnabled) {
+        Collection<MLProviderInterface> plugins = getMLPlugins(onlyEnabled);
+        for (MLProviderInterface p : plugins) {
+            if (p.getName().equalsIgnoreCase(name)) {
+                return p;
+            }
+        }
+        logger.debug("No machine learning provider matching name {} for onlyEnabled = {}", name, onlyEnabled);
+        return null;
+    }
 
     public JointQueryTask queryAll(JointQueryTask holder, final String query, final Object... parameters) {
         List<String> providers = this.getQueryProvidersName(true);
@@ -542,7 +571,6 @@ public class PluginController {
         return t;
 
     }
-
 
     public Task<Iterable<SearchResult>> query(String querySource, final String query, final DimLevel level,
             final Object... parameters) {
@@ -733,13 +761,54 @@ public class PluginController {
         return rettasks;
     }
 
+    public List<Task<Report>> index(Collection<URI> paths) {
+        logger.info("Starting indexing procedure for {} items", paths.size());
+
+        List<StorageInputStream> objectsToStore = new ArrayList<>();
+        ArrayList<Task<Report>> rettasks = new ArrayList<>();
+        Collection<IndexerInterface> indexers = getIndexingPlugins(true);
+
+        for (URI path : paths) {
+            StorageInterface store = getStorageForSchema(path);
+
+            if (store == null) {
+                logger.error("Could not get storage schema for {}", path);
+                continue;
+            }
+
+            store.at(path).forEach(objectsToStore::add);
+        }
+
+        for (IndexerInterface indexer : indexers) {
+            try {
+                Task<Report> task = indexer.index(objectsToStore);
+                if (task == null)
+                    continue;
+                final String taskUniqueID = UUID.randomUUID().toString();
+                task.setName(String.format("[%s]index %d items", indexer.getName(), objectsToStore.size()));
+                task.onCompletion(() -> {
+                    logger.info("Task [{}] complete on {} items", taskUniqueID, objectsToStore.size());
+                });
+
+                taskManager.dispatch(task);
+                rettasks.add(task);
+                RunningIndexTasks.getInstance().addTask(task);
+            } catch (RuntimeException ex) {
+                logger.warn("Indexer {} failed unexpectedly", indexer.getName(), ex);
+            }
+
+        }
+
+        return rettasks;
+    }
+
     public void unindex(URI path) {
         logger.info("Starting unindexing procedure for {}", path.toString());
         this.doUnindex(path, this.getIndexingPlugins(true));
     }
 
     /** Issue the removal of indexed entries in a path from the given indexers.
-     * 
+     *
      * @param path the URI of the directory or file to unindex
      * @param indexProviders a collection of providers
      */
@@ -758,9 +827,8 @@ public class PluginController {
     }
 
     /** Issue the removal of indexed entries in bulk.
-     * 
-     * @param indexProvider the name of the indexer
-     * @param items a collections of item identifiers to unindex
+     *
+     * @param paths a collections of item identifiers to unindex
      * @param progressCallback an optional function (can be `null`),
      *        called for every batch of items successfully unindexed
      *        to indicate early progress
@@ -769,10 +837,30 @@ public class PluginController {
      * @return an asynchronous task object returning
      *         a report containing which files were not unindexed,
      *         and whether some of them were not found in the database
-     * @throws IOException
      */
-    public Task<UnindexReport> unindex(String indexProvider, Collection<URI> items,
-            Consumer<Collection<URI>> progressCallback) throws IOException {
+    public List<Task<UnindexReport>> unindex(Collection<URI> paths, Consumer<Collection<URI>> progressCallback) {
+        List<Task<UnindexReport>> tasks = new ArrayList<>();
+        for (IndexerInterface indexer : this.getIndexingPlugins(true))
+            tasks.add(createUnindexTask(paths, progressCallback, indexer));
+
+        return tasks;
+    }
+
+    /** Issue the removal of indexed entries in bulk.
+     *
+     * @param indexProvider the name of the indexer
+     * @param paths a collections of item identifiers to unindex
+     * @param progressCallback an optional function (can be `null`),
+     *        called for every batch of items successfully unindexed
+     *        to indicate early progress
+     *        and inform consumers that
+     *        it is safe to remove or exclude the unindexed item
+     * @return an asynchronous task object returning
+     *         a report containing which files were not unindexed,
+     *         and whether some of them were not found in the database
+     */
+    public Task<UnindexReport> unindex(String indexProvider, Collection<URI> paths,
+            Consumer<Collection<URI>> progressCallback) {
 
         IndexerInterface indexer = null;
         if (indexProvider != null) {
@@ -781,21 +869,11 @@ public class PluginController {
         if (indexer == null) {
             indexer = this.getIndexingPlugins(true).iterator().next();
         }
-        logger.info("[{}] Starting unindexing procedure for {} items", indexer.getName(), items.size());
-        Task<UnindexReport> task = indexer.unindex(items, progressCallback);
-        if (task != null) {
-            final String taskUniqueID = UUID.randomUUID().toString();
-            task.setName(String.format("[%s]unindex", indexer.getName()));
-            task.onCompletion(() -> {
-                logger.info("Unindexing task [{}] complete", taskUniqueID);
-            });
-            taskManager.dispatch(task);
-        }
-        return task;
+        return createUnindexTask(paths, progressCallback, indexer);
     }
 
     /** Issue an unindexing procedure to the given indexers.
-     * 
+     *
      * @param path the URI of the directory or file to unindex
      * @param indexers a collection of providers
      */
@@ -844,10 +922,99 @@ public class PluginController {
         return reports;
     }
 
+    /**
+     * Generate and dispatch an unindex task.
+     * @param items Collection of URIs to unindex
+     * @param progressCallback Callback raised when URIs are declared
+     * @param indexer
+     * @return
+     */
+    private Task<UnindexReport> createUnindexTask(Collection<URI> items, Consumer<Collection<URI>> progressCallback,
+            IndexerInterface indexer) {
+        logger.info("[{}] Starting unindexing procedure for {} items", indexer.getName(), items.size());
+
+        Task<UnindexReport> task = null;
+        try {
+            task = indexer.unindex(items, progressCallback);
+        } catch (IOException e) {
+            logger.error("IO exception ocurred while creating unindex task", e);
+        }
+
+        if (task != null) {
+            final String taskUniqueID = UUID.randomUUID().toString();
+            task.setName(String.format("[%s]unindex", indexer.getName()));
+            task.onCompletion(() -> {
+                logger.info("Unindexing task [{}] complete", taskUniqueID);
+            });
+            taskManager.dispatch(task);
+        }
+        return task;
+    }
+
+    /**
+     * This method orders a prediction on the selected image, using the selected provider.
+     * @param provider provider to use.
+     * @param predictionRequest
+     * @return the created task
+     */
+    public Task<MLInference> infer(final String provider, final MLInferenceRequest predictionRequest) {
+        MLProviderInterface providerInterface = this.getMachineLearningProviderByName(provider, true);
+        if (providerInterface == null)
+            return null;
+
+        String taskName = "MLPredictionTask" + UUID.randomUUID();
+        Task<MLInference> result = providerInterface.infer(predictionRequest);
+        result.setName(taskName);
+        return result;
+    }
+
+    /**
+     * This method creates a {@link PrepareDatasetTask}.
+     * The task is responsible for creating a directory where the processed dataset will be placed.
+     * After the task is finished, the chosen mlProvider will be invoked to upload the dataset.
+     * @param datasetRequest the dataset to upload.
+     * @return the created task
+     */
+    public Task<MLDataset> datastore(final DatastoreRequest datasetRequest) {
+        String uuid = UUID.randomUUID().toString();
+        Task<MLDataset> prepareTask =
+                new Task<>("MLPrepareDatastoreTask" + uuid, new PrepareDatastoreTask(this, datasetRequest));
+        MLProviderInterface mlInterface = getMachineLearningProviderByName(datasetRequest.getProvider(), true);
+        if (mlInterface == null) {
+            logger.error("MLProvider with name {} not found", datasetRequest.getProvider());
+            prepareTask.cancel(true);
+            return prepareTask;
+        }
+
+        prepareTask.onCompletion(() -> {
+            try {
+                mlInterface.dataStore(prepareTask.get());
+            } catch (InterruptedException | ExecutionException e) {
+                logger.error("Task {} failed execution", prepareTask.getName(), e);
+            }
+        });
+        logger.debug("Fired prepare dataset task with uuid {}", uuid);
+        taskManagerML.dispatch(prepareTask);
+        return prepareTask;
+    }
+
+    public Task<Boolean> cache(String provider, final MLDicomDataset dataset) {
+        String taskName = "MLPredictionTask" + UUID.randomUUID();
+        MLProviderInterface mlInterface = getMachineLearningProviderByName(provider, true);
+        if (mlInterface == null) {
+            logger.error("MLProvider with name {} not found", provider);
+            return null;
+        }
+
+        Task<Boolean> task = mlInterface.cache(dataset);
+        task.setName(taskName);
+        return task;
+    }
+
     // Methods for Web UI
 
     /** Retrieve all web UI plugin descriptors for the given slot id.
-     * 
+     *
      * @param ids the slot id's for the plugin ("query", "result", "menu", ...), empty or null for any slot
      * @return a collection of web UI plugins.
      */
@@ -870,7 +1037,7 @@ public class PluginController {
     }
 
     /** Retrieve the web UI plugin descriptor of the plugin with the given name.
-     * 
+     *
      * @param name the unique name of the plugin
      * @return a web UI plugin descriptor object, or null if no such plugin exists or is inactive
      */
@@ -881,7 +1048,7 @@ public class PluginController {
     }
 
     /** Retrieve the web UI plugin descriptor package.json.
-     * 
+     *
      * @param name the unique name of the plugin
      * @return the full contents of the package.json, null if the plugin is not available
      */
@@ -897,7 +1064,7 @@ public class PluginController {
     }
 
     /** Retrieve the web UI plugin module code.
-     * 
+     *
      * @param name the unique name of the plugin
      * @return the full contents of the module file, null if the plugin is not available
      */

@@ -62,9 +62,11 @@ const ServicesView = createReactClass({
       storageRunning: data.storageRunning,
       storagePort: data.storagePort,
       storageAutostart: data.storageAutostart,
+      storageHostname: data.storageHostname,
       queryRunning: data.queryRunning,
       queryPort: data.queryPort,
       queryAutostart: data.queryAutostart,
+      queryHostname: data.queryHostname,
       status: "done",
       storageLoading: false,
       queryLoading: false
@@ -129,13 +131,16 @@ const ServicesView = createReactClass({
                 autostart={this.state.storageAutostart}
                 dirtyPort={this.state.storageDirtyPort}
                 port={this.state.storagePort}
+                hostname={this.state.storageHostname ?? ''}
                 onhold={this.state.storageLoading}
                 extraSettings={null}
                 onStartService={this.startStorage}
                 onStopService={this.stopStorage}
                 onChangePort={this.handleStoragePortChange}
+                onChangeHostname={this.handleStorageHostnameChange}
                 onToggleAutostart={this.handleToggleStorageAutostart}
                 onSubmitPort={this.handleSubmitStoragePort}
+                onSubmitHostname={this.handleSubmitStorageHostname}
               />
             </li>
             <li
@@ -148,13 +153,16 @@ const ServicesView = createReactClass({
                 autostart={this.state.queryAutostart}
                 dirtyPort={this.state.queryDirtyPort}
                 port={this.state.queryPort}
+                hostname={this.state.queryHostname ?? ''}
                 onhold={this.state.queryLoading}
                 extraSettings={extraQRSettings}
                 onStartService={this.startQuery}
                 onStopService={this.stopQuery}
                 onChangePort={this.handleQueryPortChange}
+                onChangeHostname={this.handleQueryHostnameChange}
                 onToggleAutostart={this.handleToggleQueryAutostart}
                 onSubmitPort={this.handleSubmitQueryPort}
+                onSubmitHostname={this.handleSubmitQueryHostname}
               />
             </li>
             {pluginElements}
@@ -180,10 +188,22 @@ const ServicesView = createReactClass({
       queryDirtyPort: true
     });
   },
+  handleQueryHostnameChange(hostname) {
+    this.setState({
+      queryHostname: hostname,
+      queryDirtyHostname: true
+    });
+  },
   handleStoragePortChange(portNumber) {
     this.setState({
       storagePort: portNumber,
       storageDirtyPort: true
+    });
+  },
+  handleStorageHostnameChange(hostname) {
+    this.setState({
+      storageHostname: hostname,
+      storageDirtyHostname: true
     });
   },
   handleStorageRunning(enable) {
@@ -223,6 +243,14 @@ const ServicesView = createReactClass({
   handleSubmitQueryPort(port) {
     this.setState({ queryDirtyPort: false, queryLoading: true });
     ServiceAction.setQueryPort(port);
+  },
+  handleSubmitStorageHostname(hostname) {
+    this.setState({ storageDirtyHostname: false, storageLoading: true });
+    ServiceAction.setStorageHostname(hostname);
+  },
+  handleSubmitQueryHostname(hostname) {
+    this.setState({ queryDirtyHostname: false, queryLoading: true });
+    ServiceAction.setQueryHostname(hostname);
   },
   startQuery() {
     ServiceAction.setQuery(true);

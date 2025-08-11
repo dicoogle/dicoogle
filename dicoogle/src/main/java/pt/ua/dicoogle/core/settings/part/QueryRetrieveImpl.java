@@ -38,6 +38,8 @@ public class QueryRetrieveImpl implements ServerSettings.DicomServices.QueryRetr
     private boolean autostart;
     @JacksonXmlProperty(isAttribute = true)
     private int port;
+    @JacksonXmlProperty(isAttribute = true)
+    private String hostname;
 
     public QueryRetrieveImpl() {}
 
@@ -108,6 +110,16 @@ public class QueryRetrieveImpl implements ServerSettings.DicomServices.QueryRetr
 
     public void setPort(int port) {
         this.port = port;
+    }
+
+    @Override
+    public String getHostname() {
+        return hostname;
+    }
+
+    @Override
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
     }
 
     public int getRspDelay() {

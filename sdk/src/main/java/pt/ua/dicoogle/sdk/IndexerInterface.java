@@ -111,7 +111,7 @@ public interface IndexerInterface extends DicooglePlugin {
      * one or more individual operations in batch,
      * thus becoming faster than unindexing each item individually.
      * 
-     * Like {@linkplain index},
+     * Like {@linkplain #index(Iterable, Object...)},
      * this operation is asynchronous.
      * One can keep track of the unindexing task's progress
      * by passing a callback function as the second parameter.

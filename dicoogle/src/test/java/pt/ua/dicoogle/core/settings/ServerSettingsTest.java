@@ -72,6 +72,7 @@ public class ServerSettingsTest {
         assertEquals("dicoogle01", ar.getNodeName());
         assertEquals(true, ar.isEncryptUsersFile());
         assertEquals(true, ar.isCallShutdown());
+        assertEquals(true, ar.isUseIIORegistry());
 
         assertSameContent(Collections.singleton("lucene"), ar.getDIMProviders());
         assertSameContent(Collections.singleton("filestorage"), ar.getDefaultStorage());
@@ -102,6 +103,7 @@ public class ServerSettingsTest {
         // QR settings
         assertFalse(qr.isAutostart());
         assertEquals(1033, qr.getPort());
+        assertEquals("192.168.1.0", qr.getHostname());
         assertSameContent(Collections.singleton("any"), dcm.getAllowedLocalInterfaces());
         assertSameContent(Collections.singleton("any"), dcm.getAllowedHostnames());
         assertEquals(1, qr.getRspDelay());
@@ -118,11 +120,13 @@ public class ServerSettingsTest {
         // DICOM Storage settings
         assertTrue(dcm.getStorageSettings().isAutostart());
         assertEquals(6777, dcm.getStorageSettings().getPort());
+        assertEquals(null, dcm.getStorageSettings().getHostname());
 
         // Web server settings
         final ServerSettings.WebServer web = settings.getWebServerSettings();
         assertTrue(web.isAutostart());
         assertEquals(8282, web.getPort());
+        assertEquals("127.0.0.1", web.getHostname());
         assertEquals("test.dicoogle.com", web.getAllowedOrigins());
 
         // Known C-MOVE destinations
@@ -170,6 +174,7 @@ public class ServerSettingsTest {
         // QR settings
         assertTrue(qr.isAutostart());
         assertEquals(1045, qr.getPort());
+        assertEquals(null, qr.getHostname());
         assertSameContent(Collections.singleton("any"), dcm.getAllowedLocalInterfaces());
         assertSameContent(Collections.singleton("any"), dcm.getAllowedHostnames());
         assertEquals(0, qr.getRspDelay());

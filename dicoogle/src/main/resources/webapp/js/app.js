@@ -10,7 +10,7 @@ import { Endpoints } from "./constants/endpoints";
 import dicoogleClient from "dicoogle-client";
 import Webcore from "dicoogle-webcore";
 
-import { Router, Route, IndexRoute, hashHistory } from "react-router";
+import { Router, Route, hashHistory } from "react-router";
 
 import { Search } from "./components/search/searchView";
 import { SearchResultView } from "./components/search/searchResultView";
@@ -94,10 +94,6 @@ class App extends React.Component {
     } else {
       UserStore.loadLocalStore();
     }
-
-    if (location.hash === "" || location.hash === "/") {
-      this.props.router.push("/login");
-    }
   }
 
   handleUserStoreUpdate(data) {
@@ -172,7 +168,7 @@ class App extends React.Component {
       lastLocation: "search"
     });
     this.needsPluginUpdate = true;
-    this.context.router.history.push("/login");
+    this.context.router.push("/login");
   }
 
   render() {
@@ -237,7 +233,6 @@ Webcore.init(Endpoints.base);
 ReactDOM.render(
   <Router history={hashHistory}>
     <Route path="/" component={App}>
-      <IndexRoute component={LoadingView} />
       <Route path="/search" component={Search} />
       <Route path="/management" component={ManagementView} />
       <Route path="/results" component={SearchResultView} />

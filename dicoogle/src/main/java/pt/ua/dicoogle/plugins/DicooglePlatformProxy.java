@@ -21,6 +21,8 @@ package pt.ua.dicoogle.plugins;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
+
 import pt.ua.dicoogle.core.settings.ServerSettingsManager;
 
 
@@ -31,6 +33,7 @@ import pt.ua.dicoogle.sdk.StorageInterface;
 import pt.ua.dicoogle.sdk.core.DicooglePlatformInterface;
 import pt.ua.dicoogle.sdk.datastructs.Report;
 import pt.ua.dicoogle.sdk.datastructs.SearchResult;
+import pt.ua.dicoogle.sdk.datastructs.UnindexReport;
 import pt.ua.dicoogle.sdk.datastructs.dim.DimLevel;
 import pt.ua.dicoogle.sdk.settings.server.ServerSettingsReader;
 import pt.ua.dicoogle.sdk.task.JointQueryTask;
@@ -158,6 +161,28 @@ public class DicooglePlatformProxy implements DicooglePlatformInterface {
     }
 
     @Override
+    public List<Task<Report>> index(Collection<URI> paths) {
+        return pluginController.index(paths);
+    }
+
+
+    @Override
+    public void unindex(URI path) {
+        pluginController.unindex(path);
+    }
+
+    @Override
+    public List<Task<UnindexReport>> unindex(Collection<URI> paths) {
+        return pluginController.unindex(paths, null);
+    }
+
+    @Override
+    public List<Task<UnindexReport>> unindex(Collection<URI> paths, Consumer<Collection<URI>> callbacks) {
+        return pluginController.unindex(paths, callbacks);
+    }
+
+    @Override
+    @Deprecated
     public List<Report> indexBlocking(URI path) {
         return pluginController.indexBlocking(path);
     }

@@ -59,31 +59,31 @@ public class ServicesServlet extends HttpServlet {
         final ControlServices controlServices = ControlServices.getInstance();
         final ServerSettings serverSettings = ServerSettingsManager.getSettings();
 
-        boolean isRunning = false;
-        int port = -1;
-        boolean autostart = false;
+        boolean isRunning;
         ServerSettingsReader.ServiceBase base;
         switch (mType) {
             case STORAGE:
                 base = serverSettings.getDicomServicesSettings().getStorageSettings();
                 isRunning = controlServices.storageIsRunning();
-                port = base.getPort();
-                autostart = base.isAutostart();
                 break;
             case QUERY:
                 base = serverSettings.getDicomServicesSettings().getQueryRetrieveSettings();
                 isRunning = controlServices.queryRetrieveIsRunning();
-                port = base.getPort();
-                autostart = base.isAutostart();
                 break;
             default:
                 throw new IllegalStateException("Unexpected service type " + mType);
         }
+        int port = base.getPort();
+        boolean autostart = base.isAutostart();
+        String hostname = base.getHostname();
 
         JSONObject obj = new JSONObject();
         obj.element("isRunning", isRunning);
         obj.element("port", port);
         obj.element("autostart", autostart);
+        if (hostname != null) {
+            obj.element("hostname", hostname);
+        }
 
         resp.setContentType("application/json");
         resp.getWriter().print(obj.toString());
@@ -96,9 +96,10 @@ public class ServicesServlet extends HttpServlet {
         JSONObject obj = new JSONObject();
 
         // gather settings to update
-        boolean updateAutostart = false, updatePort = false, updateRunning = false;
+        boolean updateAutostart = false, updatePort = false, updateRunning = false, updateHostname = false;
         boolean autostart = false, running = false;
         int port = 0;
+        String hostname = null;
 
         String paramPort = req.getParameter("port");
         if (paramPort != null) {
@@ -128,6 +129,16 @@ public class ServicesServlet extends HttpServlet {
             updateRunning = true;
         }
 
+        String paramHostname = req.getParameter("hostname");
+        if (paramHostname != null) {
+            hostname = paramHostname.trim();
+            // remove hostname if empty
+            if (hostname.isEmpty()) {
+                hostname = null;
+            }
+            updateHostname = true;
+        }
+
         final ControlServices controlServices = ControlServices.getInstance();
         final ServerSettings serverSettings = ServerSettingsManager.getSettings();
 
@@ -155,6 +166,20 @@ public class ServicesServlet extends HttpServlet {
                 case QUERY:
                     serverSettings.getDicomServicesSettings().getQueryRetrieveSettings().setPort(port);
                     obj.element("port", port);
+                    break;
+            }
+        }
+
+        // update hostname
+        if (updateHostname) {
+            switch (mType) {
+                case STORAGE:
+                    serverSettings.getDicomServicesSettings().getStorageSettings().setHostname(hostname);
+                    obj.element("hostname", hostname);
+                    break;
+                case QUERY:
+                    serverSettings.getDicomServicesSettings().getQueryRetrieveSettings().setHostname(hostname);
+                    obj.element("hostname", hostname);
                     break;
             }
         }

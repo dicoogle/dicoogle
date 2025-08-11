@@ -19,6 +19,7 @@
 package pt.ua.dicoogle;
 
 import org.dcm4che2.data.TransferSyntax;
+import org.dcm4che3.imageio.plugins.dcm.DicomImageReaderSpi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -31,6 +32,8 @@ import pt.ua.dicoogle.utils.Platform;
 import pt.ua.dicoogle.sdk.settings.server.ServerSettings;
 import pt.ua.dicoogle.server.web.auth.Authentication;
 
+import javax.imageio.ImageIO;
+import javax.imageio.spi.IIORegistry;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
@@ -171,6 +174,13 @@ public class Main {
 
         // Start the initial Services of Dicoogle
         pt.ua.dicoogle.server.ControlServices.getInstance();
+
+        // Register Image Reader for DICOM Objects
+        if (settings.getArchiveSettings().isUseIIORegistry()) {
+            IIORegistry.getDefaultInstance().registerServiceProvider(new DicomImageReaderSpi());
+            ImageIO.setUseCache(false);
+            System.setProperty("dcm4che.useImageIOServiceRegistry", "true");
+        }
 
         // Launch Async Index
         // It monitors a folder, and when a file is touched an event

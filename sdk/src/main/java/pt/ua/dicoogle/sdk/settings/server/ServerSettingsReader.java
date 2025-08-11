@@ -19,6 +19,7 @@
 
 package pt.ua.dicoogle.sdk.settings.server;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -39,12 +40,22 @@ import java.util.List;
  */
 public interface ServerSettingsReader {
 
+    /** Base interface for reading service settings */
     interface ServiceBase {
+        /** Whether the service starts automatically when booting Dicoogle */
         @JacksonXmlProperty(isAttribute = true, localName = "autostart")
         boolean isAutostart();
 
+        /** The TCP port to bind the service to */
         @JacksonXmlProperty(isAttribute = true, localName = "port")
         int getPort();
+
+        /** Optional: The hostname or IP address to bind the service to.
+         *
+         * If not specified, the service will bind to all available interfaces.
+         */
+        @JacksonXmlProperty(isAttribute = true, localName = "hostname")
+        String getHostname();
     }
 
     interface WebServer extends ServiceBase {
@@ -78,6 +89,15 @@ public interface ServerSettingsReader {
 
         @JsonGetter("watch-directory")
         String getWatchDirectory();
+
+        /** Whether to use the Image I/O registry
+         * for DICOM image readers and writers.
+         *
+         * This is particularly useful for WSI support.
+         */
+        @JsonGetter("use-iio-registry")
+        @JsonAlias({ "support-wsi"})
+        boolean isUseIIORegistry();
 
         @JsonGetter("dim-provider")
         @JacksonXmlElementWrapper(localName = "dim-providers")

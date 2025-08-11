@@ -19,6 +19,7 @@
 package pt.ua.dicoogle.server;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -170,9 +171,17 @@ public class ControlServices {
 
         try {
             if (webServices == null) {
-                webServices = new DicoogleWeb(ServerSettingsManager.getSettings().getWebServerSettings().getPort());
-                webServerRunning = true;
+                int port = ServerSettingsManager.getSettings().getWebServerSettings().getPort();
+                String hostname = ServerSettingsManager.getSettings().getWebServerSettings().getHostname();
+                InetSocketAddress bindAddr;
+                if (hostname == null) {
+                    bindAddr = new InetSocketAddress(port);
+                } else {
+                    bindAddr = new InetSocketAddress(hostname, port);
+                }
                 logger.info("Starting Dicoogle Web");
+                webServices = new DicoogleWeb(bindAddr);
+                webServerRunning = true;
             }
         } catch (Exception ex) {
             logger.error("Failed to launch the web server", ex);

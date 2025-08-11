@@ -1,6 +1,20 @@
 # CHANGELOG
 This document intends to keep track of the changes performed on the various releases of Dicoogle.
 
+## 3.5
+
+### 3.5.0 (2025-08-07)
+
+* New: Introduced machine learning provider interface. (#631, #736)
+* Enhancement: Implement `hostname` property on services. (#720)
+* Enhancement: Additional methods for index/unindex operations in Platform Interface. (#701)
+* Enhancement: Rename server setting `archive/support-wsi` to `archive/use-iio-registry`. (#737)
+* Fix: Logout and root page loading dynamics. (#725)
+* Chore: Handle login autocomplete warning in DevTools. (#731)
+* Chore: Bump `pbkdf2` from 3.1.2 to 3.1.3 in `/webcore/examples/simple-result`. (#726)
+* Chore: Bump `brace-expansion` from 1.1.11 to 1.1.12 in `/webcore`. (#727)
+* Chore: Bump `@babel/helpers` from 7.19.0 to 7.27.6 in `/webcore/examples/simple-result`. (#728)
+
 ## 3.4
 
 ### 3.4.1 (2024-03-08)

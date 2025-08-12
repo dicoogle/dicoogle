@@ -46,7 +46,7 @@
     "eslint-plugin-import": "^2.26.0"
   },
   "dependencies": {
-    "dicoogle-client": "~5.2.4",
+    "dicoogle-client": "^6.0.0-rc.3",
     "events": "^3.3.0"
   }
 }

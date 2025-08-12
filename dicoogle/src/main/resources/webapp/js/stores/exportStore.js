@@ -78,41 +78,30 @@ const ExportStore = Reflux.createStore({
   },
 
   onGetPresets: function() {
-    let self = this;
-    let username = UserStore._username;
-
-    this.dicoogle.request("GET", ["presets", username]).end((error, data) => {
+    this.dicoogle.presets.get().end((error, presets) => {
       if (error) {
-        self.trigger({
+        this.trigger({
           success: false,
           status: error.status
         });
         return;
       }
 
-      self._contents.presets = JSON.parse(data.text);
-      self.trigger({
-        data: self._contents,
+      this._contents.presets = presets;
+      this.trigger({
+        data: this._contents,
         success: true
       });
     });
   },
 
   onSavePresets: function(name, fields) {
-    let self = this;
-
-    let queryParams = "";
-    fields.forEach(field => (queryParams += "field=" + field + "&"));
-    if (queryParams.length !== 0) queryParams.slice(0, -1);
-
     let username = UserStore._username;
 
-    this.dicoogle
-      .request("POST", ["presets", username, name])
-      .query(queryParams)
+    this.dicoogle.presets.save(username, name, fields)
       .then(res => {
         if (res.status !== 200) {
-          self.trigger({
+          this.trigger({
             success: false,
             status: res.status
           });
@@ -120,7 +109,7 @@ const ExportStore = Reflux.createStore({
         }
 
         // refresh list of presets
-        self.onGetPresets();
+        this.onGetPresets();
       });
   }
 });

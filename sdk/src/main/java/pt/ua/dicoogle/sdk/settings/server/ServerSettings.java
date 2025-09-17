@@ -49,6 +49,9 @@ public interface ServerSettings extends ServerSettingsReader {
     interface WebServer extends ServiceBase, ServerSettingsReader.WebServer {
         @JsonProperty("allowed-origins")
         void setAllowedOrigins(String allowedOrigins);
+
+        @JsonProperty("allow-unauthorized")
+        void setAllowUnauthorized(boolean allowUnauthorized);
     }
 
     @Override

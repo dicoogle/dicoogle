@@ -109,6 +109,10 @@ public class DicoogleWeb {
     public static final String CONTEXTPATH = "/";
     private LocalImageCache cache = null;
     private Server server = null;
+    /** Whether access to services is protected with authorization:
+     * There has to be a valid Dicoogle session token in the `Authorization` header.
+     */
+    private boolean authorizationEnabled = true;
 
     private final ContextHandlerCollection contextHandlers;
     private ServletContextHandler pluginHandler = null;
@@ -126,109 +130,115 @@ public class DicoogleWeb {
         // System.setProperty("org.mortbay.jetty.webapp.parentLoaderPriority", "true");
         // System.setProperty("production.mode", "true");
 
+        // initialize the authorization flag
+        this.authorizationEnabled = !ServerSettingsManager.getSettings().getWebServerSettings().isAllowUnauthorized();
+
         // "build" the input location, based on the www directory/.war chosen
         final URL warUrl = Thread.currentThread().getContextClassLoader().getResource(WEBAPPDIR);
         final String warUrlString = warUrl.toExternalForm();
 
-        // setup the DICOM to PNG image servlet, with a local cache
-        cache = new LocalImageCache("dic2png", 300, 900, new SimpleImageRetriever()); // pooling rate of 12/hr and max un-used cache age of 15 minutes
-        final ServletContextHandler dic2png = createServletHandler(new ImageServlet(cache), "/dic2png");
+        // setup the DICOM to PNG image servlet, with a local cache.
+        // pooling rate of 12/hr and max un-used cache age of 15 minutes
+        cache = new LocalImageCache("dic2png", 300, 900, new SimpleImageRetriever());
+        final ServletContextHandler dic2png = createServletHandler(new ImageServlet(cache), "/dic2png",
+                Needs.authenticated());
         cache.start(); // start the caching system
 
         // setup the ROI extractor
-        final ServletContextHandler roiExtractor = createServletHandler(new ROIServlet(), "/roi");
+        final ServletContextHandler roiExtractor = createServletHandler(new ROIServlet(), "/roi",
+                Needs.authenticated());
 
         // setup the DICOM to PNG image servlet
-        final ServletContextHandler dictags = createServletHandler(new TagsServlet(), "/dictags");
+        final ServletContextHandler dictags = createServletHandler(new TagsServlet(), "/dictags",
+                Needs.authenticated());
 
         // setup the Export to CSV Servlet
-        final ServletContextHandler csvServletHolder = createServletHandler(new ExportToCSVServlet(), "/export");
+        final ServletContextHandler csvServletHolder = createServletHandler(new ExportToCSVServlet(), "/export",
+                Needs.authenticated());
         File tempDir = Paths.get(System.getProperty("java.io.tmpdir")).toFile();
         csvServletHolder.addServlet(new ServletHolder(new ExportCSVToFILEServlet(tempDir)), "/exportFile");
 
-        // setup the search (DIMSE-service-user C-FIND ?!?) servlet
-        // final ServletContextHandler search = new ServletContextHandler(ServletContextHandler.SESSIONS); // servlet with session support enabled
-        // search.setContextPath(CONTEXTPATH);
-        // search.addServlet(new ServletHolder(new SearchServlet()), "/search");
-
-        /*hooks = getRegisteredHookActions();
-         plugin.addServlet(new ServletHolder(new PluginsServlet(hooks)), "/plugin/*");
-         */
-
         // setup the web pages/scripts app
         final WebAppContext webpages = new WebAppContext(warUrlString, CONTEXTPATH);
-        webpages.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false"); // disables directory listing
+        // disables directory listing
+        webpages.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
         webpages.setInitParameter("useFileMappedBuffer", "false");
         webpages.setInitParameter("cacheControl", "public, max-age=2592000"); // cache for 30 days
         webpages.setInitParameter("etags", "true"); // generate and handle weak entity validation tags
         webpages.setDisplayName("webapp");
-        webpages.setWelcomeFiles(new String[] {"index.html"});
+        webpages.setWelcomeFiles(new String[] { "index.html" });
         webpages.addServlet(new ServletHolder(new SearchHolderServlet()), "/search/holders");
         webpages.addFilter(GzipFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
 
         this.pluginApp = new PluginRestletApplication();
-        this.pluginHandler = createServletHandler(new RestletHttpServlet(this.pluginApp), "/ext/*");
+        this.pluginHandler = createServletHandler(new RestletHttpServlet(this.pluginApp), "/ext/*", null);
 
         this.legacyApp = new LegacyRestletApplication();
-        this.legacyHandler = createServletHandler(new RestletHttpServlet(this.legacyApp), "/legacy/*");
+        this.legacyHandler = createServletHandler(new RestletHttpServlet(this.legacyApp), "/legacy/*",
+                Needs.authenticated());
 
         // Add Static RESTlet Plugins
         PluginRestletApplication.attachRestPlugin(new VersionResource());
 
         // list the all the handlers mounted above
-        Handler[] handlers = new Handler[] {pluginHandler, legacyHandler, dic2png, roiExtractor, dictags,
-                createServletHandler(new IndexerServlet(), "/indexer"), // DEPRECATED
-                createServletHandler(new SettingsServlet(), "/settings"), csvServletHolder,
-                createServletHandler(new LoginServlet(), "/login"),
-                createServletHandler(new LogoutServlet(), "/logout"),
-                createServletHandler(new UserServlet(), "/user/*"),
-                createServletHandler(new SearchServlet(), "/search"),
-                createServletHandler(new SearchServlet(SearchType.PATIENT), "/searchDIM"),
-                createServletHandler(new DumpServlet(), "/dump"),
+        Handler[] handlers = new Handler[] { pluginHandler, legacyHandler, dic2png, roiExtractor, dictags,
+                createServletHandler(new IndexerServlet(), "/indexer", Needs.authenticated()), // DEPRECATED
+                createServletHandler(new SettingsServlet(), "/settings", Needs.authenticated()), csvServletHolder,
+                createServletHandler(new LoginServlet(), "/login", null),
+                createServletHandler(new LogoutServlet(), "/logout", null),
+                createServletHandler(new UserServlet(), "/user/*", Needs.admin()),
+                createServletHandler(new SearchServlet(), "/search", Needs.authenticated()),
+                createServletHandler(new SearchServlet(SearchType.PATIENT), "/searchDIM", Needs.authenticated()),
+                createServletHandler(new DumpServlet(), "/dump", Needs.authenticated()),
                 createServletHandler(new IndexerSettingsServlet(IndexerSettingsServlet.SettingsType.path),
-                        "/management/settings/index/path"),
+                        "/management/settings/index/path", Needs.admin()),
                 createServletHandler(new IndexerSettingsServlet(IndexerSettingsServlet.SettingsType.zip),
-                        "/management/settings/index/zip"),
+                        "/management/settings/index/zip", Needs.admin()),
                 createServletHandler(new IndexerSettingsServlet(IndexerSettingsServlet.SettingsType.effort),
-                        "/management/settings/index/effort"),
+                        "/management/settings/index/effort", Needs.admin()),
                 createServletHandler(new IndexerSettingsServlet(IndexerSettingsServlet.SettingsType.thumbnail),
-                        "/management/settings/index/thumbnail"),
+                        "/management/settings/index/thumbnail", Needs.admin()),
                 createServletHandler(new IndexerSettingsServlet(IndexerSettingsServlet.SettingsType.watcher),
-                        "/management/settings/index/watcher"),
+                        "/management/settings/index/watcher", Needs.admin()),
                 createServletHandler(new IndexerSettingsServlet(IndexerSettingsServlet.SettingsType.thumbnailSize),
-                        "/management/settings/index/thumbnail/size"),
+                        "/management/settings/index/thumbnail/size", Needs.admin()),
                 createServletHandler(new IndexerSettingsServlet(IndexerSettingsServlet.SettingsType.all),
-                        "/management/settings/index"),
-                createServletHandler(new TransferOptionsServlet(), "/management/settings/transfer"),
-                createServletHandler(new WadoServlet(), "/wado"),
-                createServletHandler(new ProvidersServlet(), "/providers"),
-                createServletHandler(new DicomQuerySettingsServlet(), "/management/settings/dicom/query"),
-                createServletHandler(new DimTagsServlet(TagsStruct.getInstance()), "/management/settings/dicom/tags"),
-                createServletHandler(new ForceIndexing(), "/management/tasks/index"),
-                createServletHandler(new UnindexServlet(), "/management/tasks/unindex"),
-                createServletHandler(new RemoveServlet(), "/management/tasks/remove"),
+                        "/management/settings/index", Needs.admin()),
+                createServletHandler(new TransferOptionsServlet(), "/management/settings/transfer", Needs.admin()),
+                createServletHandler(new WadoServlet(), "/wado", Needs.authenticated()),
+                createServletHandler(new ProvidersServlet(), "/providers", Needs.authenticated()),
+                createServletHandler(new DicomQuerySettingsServlet(), "/management/settings/dicom/query",
+                        Needs.admin()),
+                createServletHandler(new DimTagsServlet(TagsStruct.getInstance()), "/management/settings/dicom/tags",
+                        Needs.admin()),
+                createServletHandler(new ForceIndexing(), "/management/tasks/index", Needs.admin()),
+                createServletHandler(new UnindexServlet(), "/management/tasks/unindex", Needs.admin()),
+                createServletHandler(new RemoveServlet(), "/management/tasks/remove", Needs.admin()),
                 createServletHandler(new ServicesServlet(ServicesServlet.ServiceType.STORAGE),
-                        "/management/dicom/storage"),
-                createServletHandler(new ServicesServlet(ServicesServlet.ServiceType.QUERY), "/management/dicom/query"),
-                createServletHandler(new AETitleServlet(), "/management/settings/dicom"),
-                createServletHandler(new PluginsServlet(), "/plugins/*"),
-                createServletHandler(new PresetsServlet(), "/presets/*"),
-                createServletHandler(new WebUIServlet(), "/webui"), createWebUIModuleServletHandler(),
-                createServletHandler(new LoggerServlet(), "/logger"),
-                createServletHandler(new RunningTasksServlet(), "/index/task"),
-                createServletHandler(new ExportServlet(ExportType.EXPORT_CVS), "/export/cvs"),
-                createServletHandler(new ExportServlet(ExportType.LIST), "/export/list"),
-                createServletHandler(new ServerStorageServlet(), "/management/settings/storage/dicom"),
+                        "/management/dicom/storage", Needs.admin()),
+                createServletHandler(new ServicesServlet(ServicesServlet.ServiceType.QUERY), "/management/dicom/query",
+                        Needs.admin()),
+                createServletHandler(new AETitleServlet(), "/management/settings/dicom", Needs.admin()),
+                createServletHandler(new PluginsServlet(), "/plugins/*", Needs.admin()),
+                createServletHandler(new PresetsServlet(), "/presets/*", Needs.authenticated()),
+                createServletHandler(new WebUIServlet(), "/webui", Needs.authenticated()),
+                createWebUIModuleServletHandler(),
+                createServletHandler(new LoggerServlet(), "/logger", Needs.admin()),
+                createServletHandler(new RunningTasksServlet(), "/index/task", Needs.admin()),
+                createServletHandler(new ExportServlet(ExportType.EXPORT_CVS), "/export/cvs", Needs.authenticated()),
+                createServletHandler(new ExportServlet(ExportType.LIST), "/export/list", Needs.authenticated()),
+                createServletHandler(new ServerStorageServlet(), "/management/settings/storage/dicom", Needs.admin()),
 
                 // ml provider servlets
-                createServletHandler(new DatastoreServlet(), "/ml/datastore"),
-                createServletHandler(new InferServlet(), "/ml/infer/single"),
-                createServletHandler(new BulkInferServlet(), "/ml/infer/bulk"),
-                createServletHandler(new TrainServlet(), "/ml/train"),
-                createServletHandler(new ListAllModelsServlet(), "/ml/model/list"),
-                createServletHandler(new ModelinfoServlet(), "/ml/model/info"),
-                createServletHandler(new CacheServlet(), "/ml/cache"),
-                createServletHandler(new ImplementedMethodsServlet(), "/ml/provider/methods"), webpages};
+                createServletHandler(new DatastoreServlet(), "/ml/datastore", Needs.authenticated()),
+                createServletHandler(new InferServlet(), "/ml/infer/single", Needs.authenticated()),
+                createServletHandler(new BulkInferServlet(), "/ml/infer/bulk", Needs.authenticated()),
+                createServletHandler(new TrainServlet(), "/ml/train", Needs.authenticated()),
+                createServletHandler(new ListAllModelsServlet(), "/ml/model/list", Needs.authenticated()),
+                createServletHandler(new ModelinfoServlet(), "/ml/model/info", Needs.authenticated()),
+                createServletHandler(new CacheServlet(), "/ml/cache", Needs.authenticated()),
+                createServletHandler(new ImplementedMethodsServlet(), "/ml/provider/methods", Needs.authenticated()),
+                webpages };
 
         // setup the server
         server = new Server(socketAddr);
@@ -275,12 +285,15 @@ public class DicoogleWeb {
     }
 
     private ServletContextHandler createWebUIModuleServletHandler() {
-        ServletContextHandler handler = new ServletContextHandler(ServletContextHandler.SESSIONS); // servlet with session support enabled
+        // servlet with session support enabled
+        ServletContextHandler handler = new ServletContextHandler(ServletContextHandler.SESSIONS);
         handler.setContextPath(CONTEXTPATH);
 
         HttpServlet servletModule = new WebUIModuleServlet();
         // CORS support
         this.addCORSFilter(handler);
+        // require being logged in
+        this.addAuthFilter(handler, false, null);
         // Caching!
         FilterHolder cacheHolder = new FilterHolder(new AbstractCacheFilter() {
             @Override
@@ -305,18 +318,46 @@ public class DicoogleWeb {
                 }
             }
         });
-        cacheHolder.setInitParameter(AbstractCacheFilter.CACHE_CONTROL_PARAM, "private, max-age=2592000"); // cache for 30 days
+        // cache for 30 days
+        cacheHolder.setInitParameter(AbstractCacheFilter.CACHE_CONTROL_PARAM, "private, max-age=2592000");
         handler.addFilter(cacheHolder, "/*", EnumSet.of(DispatcherType.REQUEST));
         handler.addServlet(new ServletHolder(servletModule), "/webui/module/*");
         return handler;
     }
 
-    private ServletContextHandler createServletHandler(HttpServlet servlet, String path) {
-        ServletContextHandler handler = new ServletContextHandler(ServletContextHandler.SESSIONS); // servlet with session support enabled
+    static class Needs {
+        final boolean admin;
+        final String role;
+
+        Needs(boolean admin, String role) {
+            this.admin = admin;
+            this.role = role;
+        }
+
+        public static Needs admin() {
+            return new Needs(true, null);
+        }
+
+        public static Needs role(String role) {
+            return new Needs(false, role);
+        }
+
+        public static Needs authenticated() {
+            return new Needs(false, null);
+        }
+    }
+
+    private ServletContextHandler createServletHandler(HttpServlet servlet, String path, Needs needs) {
+        // servlet with session support enabled
+        ServletContextHandler handler = new ServletContextHandler(ServletContextHandler.SESSIONS);
         handler.setContextPath(CONTEXTPATH);
 
         // CORS support
         this.addCORSFilter(handler);
+
+        if (this.authorizationEnabled && needs != null) {
+            this.addAuthFilter(handler, needs.admin, needs.role);
+        }
 
         handler.addServlet(new ServletHolder(servlet), path);
         return handler;
@@ -355,6 +396,15 @@ public class DicoogleWeb {
                 addCORSFilter(h);
             }
         }
+    }
+
+    private void addAuthFilter(ServletContextHandler handler, boolean needsAdmin, String needsRole) {
+        FilterHolder authHolder = new FilterHolder(AuthenticatedFilter.class);
+        authHolder.setInitParameter(AuthenticatedFilter.NEEDS_ADMIN_PARAM, Boolean.toString(needsAdmin));
+        if (needsRole != null) {
+            authHolder.setInitParameter(AuthenticatedFilter.NEEDS_ROLE_PARAM, needsRole);
+        }
+        handler.addFilter(authHolder, "/*", EnumSet.of(DispatcherType.REQUEST));
     }
 
     /**

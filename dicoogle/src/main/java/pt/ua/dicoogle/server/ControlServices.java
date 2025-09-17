@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import pt.ua.dicoogle.sdk.settings.server.ServerSettings;
+import pt.ua.dicoogle.sdk.settings.server.ServerSettingsReader;
 import pt.ua.dicoogle.server.queryretrieve.QueryRetrieve;
 
 import org.slf4j.LoggerFactory;
@@ -167,26 +168,35 @@ public class ControlServices {
     }
 
     public void startWebServer() {
-        logger.info("Starting WebServer");
+        if (webServices != null) {
+            logger.info("Web server already running");
+            return;
+        }
 
+        logger.info("Starting Web server");
         try {
-            if (webServices == null) {
-                int port = ServerSettingsManager.getSettings().getWebServerSettings().getPort();
-                String hostname = ServerSettingsManager.getSettings().getWebServerSettings().getHostname();
-                InetSocketAddress bindAddr;
-                if (hostname == null) {
-                    bindAddr = new InetSocketAddress(port);
-                } else {
-                    bindAddr = new InetSocketAddress(hostname, port);
-                }
-                logger.info("Starting Dicoogle Web");
-                webServices = new DicoogleWeb(bindAddr);
-                webServerRunning = true;
+            ServerSettingsReader.WebServer settings = ServerSettingsManager.getSettings().getWebServerSettings();
+
+            if (settings.isAllowUnauthorized()) {
+                logger.warn("Web server is in permissive mode!");
+                logger.warn("In this mode, anyone can access and manipulate the archive through the Web API without logging in.");
+                logger.warn("If this is not intended, remove `allow-unauthorized` setting in `server.xml`.");
             }
+
+            int port = settings.getPort();
+            String hostname = settings.getHostname();
+            InetSocketAddress bindAddr;
+            if (hostname == null) {
+                bindAddr = new InetSocketAddress(port);
+            } else {
+                bindAddr = new InetSocketAddress(hostname, port);
+            }
+            logger.info("Starting Dicoogle Web");
+            webServices = new DicoogleWeb(bindAddr);
+            webServerRunning = true;
         } catch (Exception ex) {
             logger.error("Failed to launch the web server", ex);
         }
-
     }
 
     public void stopWebServer() {

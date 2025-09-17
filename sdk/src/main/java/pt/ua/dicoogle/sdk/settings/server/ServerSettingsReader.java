@@ -21,6 +21,7 @@ package pt.ua.dicoogle.sdk.settings.server;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import pt.ua.dicoogle.sdk.datastructs.AdditionalSOPClass;
@@ -62,6 +63,14 @@ public interface ServerSettingsReader {
 
         @JsonGetter("allowed-origins")
         String getAllowedOrigins();
+
+        /** If true, authorization in the Dicoogle web API is disabled,
+         * which allows access to all services without logging in to Dicoogle.
+         *
+         * Use with caution, as this effectively disables all safeguards.
+         */
+        @JsonProperty("allow-unauthorized")
+        boolean isAllowUnauthorized();
     }
 
     @JsonGetter("web-server")

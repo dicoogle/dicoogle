@@ -430,6 +430,16 @@ public class LegacyServerSettings implements ServerSettings {
             this.accessControlAllowOrigins = origins;
         }
 
+        @Override
+        public void setAllowUnauthorized(boolean allowUnauthorized) {
+            // no-op, not supported by legacy settings
+        }
+
+        @Override
+        public boolean isAllowUnauthorized() {
+            return true;
+        }
+
         @Deprecated
         public void setWebServices(boolean webServices) {
             this.webServices = webServices;

@@ -20,6 +20,7 @@ package pt.ua.dicoogle.core.settings.part;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import pt.ua.dicoogle.sdk.settings.server.ServerSettings;
 
@@ -32,13 +33,16 @@ import java.util.Objects;
         isGetterVisibility = JsonAutoDetect.Visibility.PUBLIC_ONLY,
         getterVisibility = JsonAutoDetect.Visibility.PUBLIC_ONLY,
         setterVisibility = JsonAutoDetect.Visibility.PUBLIC_ONLY)
-public class StorageImpl implements ServerSettings.ServiceBase {
+public class StorageImpl implements ServerSettings.DicomServices.Storage {
     @JacksonXmlProperty(isAttribute = true)
     private boolean autostart;
     @JacksonXmlProperty(isAttribute = true)
     private int port;
     @JacksonXmlProperty(isAttribute = true)
     private String hostname;
+
+    @JsonProperty(value = "save-ae-titles", defaultValue = "true")
+    private boolean saveAETitles = true;
 
     @JsonCreator
     public StorageImpl(@JacksonXmlProperty(localName = "autostart") boolean autostart,
@@ -84,8 +88,19 @@ public class StorageImpl implements ServerSettings.ServiceBase {
     }
 
     @Override
+    public boolean isSaveAETitles() {
+        return this.saveAETitles;
+    }
+
+    @Override
+    public void setSaveAETitles(boolean saveAETitles) {
+        this.saveAETitles = saveAETitles;
+    }
+
+    @Override
     public String toString() {
-        return "StorageImpl{" + "autostart=" + autostart + ", port=" + port + ", hostname=" + hostname + '}';
+        return "StorageImpl{" + "autostart=" + autostart + ", port=" + port +
+                ", hostname=" + hostname + ", saveAETitles=" + saveAETitles +'}';
     }
 
     @Override

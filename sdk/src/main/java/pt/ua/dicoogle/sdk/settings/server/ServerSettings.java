@@ -109,8 +109,12 @@ public interface ServerSettings extends ServerSettingsReader {
 
         void setAdditionalTransferSyntaxes(Collection<AdditionalTransferSyntax> additionalTransferSyntaxes);
 
+        interface Storage extends ServiceBase, ServerSettingsReader.DicomServices.Storage {
+            void setSaveAETitles(boolean saveAETitles);
+        }
+
         @JsonGetter("storage")
-        ServiceBase getStorageSettings();
+        Storage getStorageSettings();
 
         interface QueryRetrieve extends ServiceBase, ServerSettingsReader.DicomServices.QueryRetrieve {
             void setSOPClass(Collection<String> sopClasses);

@@ -280,11 +280,14 @@ public class DicomStorage extends StorageService {
 
             d.initFileMetaInformation(cuid, iuid, tsuid);
 
-            // constants are missing in dcm4che 2
-            final int TAG_SENDING_APPLICATION_ENTITY_TITLE = 0x0002_0017;
-            final int TAG_RECEIVING_APPLICATION_ENTITY_TITLE = 0x0002_0018;
-            d.fileMetaInfo().putString(TAG_SENDING_APPLICATION_ENTITY_TITLE, VR.AE, sendingAet);
-            d.fileMetaInfo().putString(TAG_RECEIVING_APPLICATION_ENTITY_TITLE, VR.AE, receivingAet);
+            // save provenance to FMI
+            if (settings.getDicomServicesSettings().getStorageSettings().isSaveAETitles()) {
+                // constants are missing in dcm4che 2
+                final int TAG_SENDING_APPLICATION_ENTITY_TITLE = 0x0002_0017;
+                final int TAG_RECEIVING_APPLICATION_ENTITY_TITLE = 0x0002_0018;
+                d.fileMetaInfo().putString(TAG_SENDING_APPLICATION_ENTITY_TITLE, VR.AE, sendingAet);
+                d.fileMetaInfo().putString(TAG_RECEIVING_APPLICATION_ENTITY_TITLE, VR.AE, receivingAet);
+            }
 
             Iterable<StorageInterface> plugins = PluginController.getInstance().getStoragePlugins(true);
 

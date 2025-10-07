@@ -1393,7 +1393,7 @@ public class LegacyServerSettings implements ServerSettings {
         }
 
         @Override
-        public ServiceBase getStorageSettings() {
+        public DicomServices.Storage getStorageSettings() {
             return LegacyServerSettings.this.getStorageSettings();
         }
 
@@ -1478,8 +1478,8 @@ public class LegacyServerSettings implements ServerSettings {
         dp = providers;
     }
 
-    public ServiceBase getStorageSettings() {
-        return new ServiceBase() {
+    public DicomServices.Storage getStorageSettings() {
+        return new DicomServices.Storage() {
             @Override
             public void setAutostart(boolean b) {
                 setStorageAutostart(b);
@@ -1496,6 +1496,11 @@ public class LegacyServerSettings implements ServerSettings {
             }
 
             @Override
+            public void setSaveAETitles(boolean saveAETitles) {
+                // no-op, not supported
+            }
+
+            @Override
             public boolean isAutostart() {
                 return isStorageAutostart();
             }
@@ -1508,6 +1513,11 @@ public class LegacyServerSettings implements ServerSettings {
             @Override
             public String getHostname() {
                 return null;
+            }
+
+            @Override
+            public boolean isSaveAETitles() {
+                return false;
             }
         };
     }

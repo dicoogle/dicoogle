@@ -59,7 +59,9 @@
             </move-destination>
         </move-destinations>
 
-        <storage autostart="true" port="6777" />
+        <storage autostart="true" port="6777">
+            <save-ae-titles>false</save-ae-titles>
+        </storage>
 
         <query-retrieve autostart="false" port="1033" >
             <rsp-delay>1</rsp-delay>

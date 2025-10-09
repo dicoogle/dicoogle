@@ -53,6 +53,9 @@ public class WebServerImpl implements ServerSettings.WebServer {
     @JsonProperty("allowed-origins")
     private String allowedOrigins;
 
+    @JsonProperty("allow-unauthorized")
+    private boolean allowUnauthorized = false;
+
     @Override
     public boolean isAutostart() {
         return autostart;
@@ -91,6 +94,16 @@ public class WebServerImpl implements ServerSettings.WebServer {
     @Override
     public String getAllowedOrigins() {
         return this.allowedOrigins;
+    }
+
+    @Override
+    public boolean isAllowUnauthorized() {
+        return allowUnauthorized;
+    }
+
+    @Override
+    public void setAllowUnauthorized(boolean allowUnauthorized) {
+        this.allowUnauthorized = allowUnauthorized;
     }
 
     @Override

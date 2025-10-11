@@ -3,6 +3,8 @@ import createReactClass from "create-react-class";
 import * as PropTypes from "prop-types";
 import * as UserActions from "../../actions/userActions";
 import UserStore from "../../stores/userStore";
+import dompurify from "dompurify";
+import { Endpoints } from "../../constants/endpoints";
 
 const LoginView = createReactClass({
   contextTypes: {
@@ -14,11 +16,23 @@ const LoginView = createReactClass({
       status: "loading",
       failed: false,
       username: "",
-      password: ""
+      password: "",
+      welcomeMessage: { __html: " " },
     };
   },
   componentWillMount: function() {
     this.unsubscribe = UserStore.listen(this._onChange);
+
+    fetch(Endpoints.base + "/welcome")
+      // read as string
+      .then((resp) => resp.text())
+      .then((msg) => {
+        this.setState({
+          welcomeMessage: {
+            __html: dompurify.sanitize(msg)
+          }
+        })
+      });
   },
   componentWillUnmount() {
     this.unsubscribe();
@@ -36,7 +50,7 @@ const LoginView = createReactClass({
     }
   },
 
-  render: function() {
+  render() {
     const guestCredentials = process.env.GUEST_USERNAME && [
       <hr key="0" />,
       <div key="1">
@@ -45,6 +59,8 @@ const LoginView = createReactClass({
         <b>password:</b> {process.env.GUEST_PASSWORD}
       </div>
     ];
+    // read welcome message as HTML
+    let welcomeMessage = this.state.welcomeMessage;
     return (
       <div id="loginwrapper">
         <div className="loginbody">
@@ -56,9 +72,9 @@ const LoginView = createReactClass({
             />
 
             <div>
-              <h4 style={{ textAlign: "center" }}>
-                Improve your knowledge from your medical imaging repository.
-              </h4>
+              <h4 style={{ textAlign: "center" }}
+              // eslint-disable-next-line react/no-danger
+              dangerouslySetInnerHTML={welcomeMessage} />
             </div>
 
             <div className="loginA">

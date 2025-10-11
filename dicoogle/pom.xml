@@ -76,6 +76,7 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <includes>
+                    <include>welcome.html</include>
                     <include>log4j2.xml</include>
                     <include>webapp/assets/**</include>
                     <include>webapp/bootstrap/css/*.css</include>

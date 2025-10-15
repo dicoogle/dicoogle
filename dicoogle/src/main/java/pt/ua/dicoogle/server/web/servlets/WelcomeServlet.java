@@ -86,7 +86,7 @@ public class WelcomeServlet extends HttpServlet {
             if (!msg.isEmpty()) {
                 messages.add(msg);
             }
-            if (!messages.isEmpty()) {
+            if (messages.isEmpty()) {
                 messages.add(FALLBACK_MESSAGE);
             }
 

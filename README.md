@@ -174,7 +174,6 @@ Maintainers:
 
 * Luís Bastião (BMD Software - development leader) - [@bastiao](https://github.com/bastiao)
 * Eduardo Pinho (BMD Software - co-leader) - [@Enet4](https://github.com/Enet4)
-* Rui Lebre (UA.PT Bioinformatics - core, elearning) - [@rlebre](https://github.com/rlebre)
 
 Contributors:
 
@@ -194,6 +193,7 @@ Past developers:
 * Renato Pinho
 * Samuel Campos
 * Tiago Godinho
+* Rui Lebre
 
 Project leaders
 ---------------

@@ -90,7 +90,13 @@ public class UnindexServlet extends HttpServlet {
         long failed = 0;
         long notfound = 0;
 
-        Collection<URI> uris = resolveURIs(paramUri, paramSop, paramSeries, paramStudy);
+        Collection<URI> uris;
+        try {
+            uris = resolveURIs(paramUri, paramSop, paramSeries, paramStudy);
+        } catch (IllegalArgumentException ex) {
+            ResponseUtil.sendError(resp, 400, ex.getMessage());
+            return;
+        }
 
         // if only one entry, do it inline
         if (uris.size() <= 1) {
@@ -145,18 +151,24 @@ public class UnindexServlet extends HttpServlet {
             return Stream.of(paramUri).map(URI::create).collect(Collectors.toList());
         }
         String attribute = null;
+        String[] values;
         if (paramSop != null) {
             attribute = "SOPInstanceUID";
+            values = paramSop;
         } else if (paramSeries != null) {
             attribute = "SeriesInstanceUID";
+            values = paramSeries;
         } else if (paramStudy != null) {
             attribute = "StudyInstanceUID";
+            values = paramStudy;
+        } else {
+            throw new IllegalArgumentException("No valid parameters to resolve URIs");
         }
 
         final String dcmAttribute = attribute;
         List<String> dicomProviders = ServerSettingsManager.getSettings().getArchiveSettings().getDIMProviders();
         if (dicomProviders.isEmpty()) {
-            return Arrays.stream(paramSop).flatMap(uid -> {
+            return Arrays.stream(values).flatMap(uid -> {
                 // translate to URIs
                 JointQueryTask holder = new JointQueryTask() {
                     @Override
@@ -175,7 +187,7 @@ public class UnindexServlet extends HttpServlet {
 
         }
         String dicomProvider = dicomProviders.iterator().next();
-        return Arrays.stream(paramSop).flatMap(uid -> {
+        return Arrays.stream(values).flatMap(uid -> {
             // translate to URIs
             QueryInterface dicom = PluginController.getInstance().getQueryProviderByName(dicomProvider, false);
 

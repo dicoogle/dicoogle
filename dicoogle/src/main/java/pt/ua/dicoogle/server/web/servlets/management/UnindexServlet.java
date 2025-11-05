@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -166,6 +167,12 @@ public class UnindexServlet extends HttpServlet {
         }
 
         final String dcmAttribute = attribute;
+
+        // validate UIDs
+        for (String uid: values) {
+            sanitizeUID(uid);
+        }
+
         List<String> dicomProviders = ServerSettingsManager.getSettings().getArchiveSettings().getDIMProviders();
         if (dicomProviders.isEmpty()) {
             return Arrays.stream(values).flatMap(uid -> {
@@ -193,5 +200,17 @@ public class UnindexServlet extends HttpServlet {
 
             return StreamSupport.stream(dicom.query(dcmAttribute + ":\"" + uid + '"').spliterator(), false);
         }).map(r -> r.getURI()).collect(Collectors.toList());
+    }
+
+    private static final Pattern UID_PATTERN = Pattern.compile("[0-9]+(\\.[0-9]+)*");
+
+    private static void sanitizeUID(String uid) {
+        if (uid == null || uid.isEmpty()) {
+            throw new IllegalArgumentException("UID parameter is null or empty");
+        }
+        uid = uid.trim();
+        if (!UID_PATTERN.matcher(uid).matches()) {
+            throw new IllegalArgumentException("Invalid DICOM UID");
+        }
     }
 }

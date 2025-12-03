@@ -629,6 +629,8 @@ paths:
           required: true
           schema:
             type: string
+          explode: true
+          style: form
         - in: query
           name: plugin
           description: a list of provider plugins
@@ -660,11 +662,15 @@ paths:
         - in: query
           name: uri
           description:
-            a URI or array of URIs representing the root resource of the files
-            to be unindexed
+            A URI or array of URIs representing the files to be unindexed.
+            Unlike [`addIndexTaskURI`](#/paths/~1management~1tasks~1index/post),
+            there is no recursive walk
+            and the URIs must point directly to the files.
           required: false
           schema:
             type: string
+          explode: true
+          style: form
         - in: query
           name: SOPInstanceUID
           description:
@@ -673,24 +679,32 @@ paths:
           required: false
           schema:
             type: string
+          explode: true
+          style: form
         - in: query
           name: SeriesInstanceUID
           description: a UID or list of UIDs representing the DICOM series to be unindexed
           required: false
           schema:
             type: string
+          explode: true
+          style: form
         - in: query
           name: StudyInstanceUID
           description: a UID or list of UIDs representing the DICOM studies to be unindexed
           required: false
           schema:
             type: string
+          explode: true
+          style: form
         - in: query
           name: provider
           description: a list of provider plugins
           required: false
           schema:
             type: string
+          explode: true
+          style: form
       responses:
         "200":
           description: Successful operation
@@ -701,7 +715,7 @@ paths:
       tags:
         - Index
       summary: Request that the file at the given URI is permanently removed
-      operationId: addUnindexTaskURI
+      operationId: addRemoveTaskURI
       parameters:
         - in: query
           name: uri
@@ -711,6 +725,8 @@ paths:
           required: true
           schema:
             type: string
+          explode: true
+          style: form
       responses:
         "200":
           description: Successful operation

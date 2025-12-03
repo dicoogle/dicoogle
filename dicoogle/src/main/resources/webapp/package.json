@@ -48,6 +48,7 @@
     "dicoogle-client": "~5.2.5",
     "dicoogle-webcore": "file:../../../../../webcore",
     "document-register-element": "^1.14.10",
+    "dompurify": "^3.2.7",
     "history": "^3.3.0",
     "jquery": "^3.6.1",
     "prop-types": "^15.8.1",

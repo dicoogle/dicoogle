@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.dcm4che2.data.DicomObject;
 import org.dcm4che2.data.Tag;
 import org.dcm4che2.data.UID;
+import org.dcm4che2.data.VR;
 import org.dcm4che2.net.Association;
 import org.dcm4che2.net.CommandUtils;
 import org.dcm4che2.net.Device;
@@ -272,9 +273,21 @@ public class DicomStorage extends StorageService {
             String cuid = rq.getString(Tag.AffectedSOPClassUID);
             String iuid = rq.getString(Tag.AffectedSOPInstanceUID);
 
+            String sendingAet = as.getCallingAET();
+            String receivingAet = as.getCalledAET();
+
             DicomObject d = dataStream.readDataset();
 
             d.initFileMetaInformation(cuid, iuid, tsuid);
+
+            // save provenance to FMI
+            if (settings.getDicomServicesSettings().getStorageSettings().isSaveAETitles()) {
+                // constants are missing in dcm4che 2
+                final int TAG_SENDING_APPLICATION_ENTITY_TITLE = 0x0002_0017;
+                final int TAG_RECEIVING_APPLICATION_ENTITY_TITLE = 0x0002_0018;
+                d.fileMetaInfo().putString(TAG_SENDING_APPLICATION_ENTITY_TITLE, VR.AE, sendingAet);
+                d.fileMetaInfo().putString(TAG_RECEIVING_APPLICATION_ENTITY_TITLE, VR.AE, receivingAet);
+            }
 
             Iterable<StorageInterface> plugins = PluginController.getInstance().getStoragePlugins(true);
 

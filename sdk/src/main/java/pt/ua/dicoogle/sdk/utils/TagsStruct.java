@@ -93,6 +93,20 @@ public class TagsStruct {
             addDICOMField(new TagValue(e.getValue(), e.getKey()));
         }
 
+        // add FMI fields not yet recognized by this version of dcm4che
+        final int SOURCE_APPLICATION_ENTITY_TITLE = 0x0002_0016;
+        final int SENDING_APPLICATION_ENTITY_TITLE = 0x0002_0017;
+        final int RECEIVING_APPLICATION_ENTITY_TITLE = 0x0002_0018;
+        final int SOURCE_PRESENTATION_ADDRESS = 0x0002_0026;
+        final int SENDING_PRESENTATION_ADDRESS = 0x0002_0027;
+        final int RECEIVING_PRESENTATION_ADDRESS = 0x0002_0028;
+        addDICOMField(new TagValue(SOURCE_APPLICATION_ENTITY_TITLE, "SourceApplicationEntityTitle"));
+        addDICOMField(new TagValue(SENDING_APPLICATION_ENTITY_TITLE, "SendingApplicationEntityTitle"));
+        addDICOMField(new TagValue(RECEIVING_APPLICATION_ENTITY_TITLE, "ReceivingApplicationEntityTitle"));
+        addDICOMField(new TagValue(SOURCE_PRESENTATION_ADDRESS, "SourcePresentationAddress"));
+        addDICOMField(new TagValue(SENDING_PRESENTATION_ADDRESS, "SendingPresentationAddress"));
+        addDICOMField(new TagValue(RECEIVING_PRESENTATION_ADDRESS, "ReceivingPresentationAddress"));
+
         addDIMField(new TagValue(Integer.parseInt("1021c0", 16), "PregnancyStatus"));
         addDIMField(new TagValue(Integer.parseInt("81050", 16), "PerformingPhysicianName"));
         addDIMField(new TagValue(Integer.parseInt("400243", 16), "PerformedLocation"));

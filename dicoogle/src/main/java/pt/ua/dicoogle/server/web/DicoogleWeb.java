@@ -29,6 +29,7 @@ import pt.ua.dicoogle.server.web.servlets.management.*;
 import pt.ua.dicoogle.server.web.servlets.search.*;
 import pt.ua.dicoogle.server.web.servlets.search.ExportServlet.ExportType;
 import pt.ua.dicoogle.server.web.servlets.search.SearchServlet.SearchType;
+import pt.ua.dicoogle.server.web.servlets.WelcomeServlet;
 import pt.ua.dicoogle.server.web.servlets.accounts.LoginServlet;
 import pt.ua.dicoogle.server.web.servlets.accounts.UserServlet;
 
@@ -177,6 +178,7 @@ public class DicoogleWeb {
 
         // list the all the handlers mounted above
         Handler[] handlers = new Handler[] {pluginHandler, legacyHandler, dic2png, roiExtractor, dictags,
+                createServletHandler(new WelcomeServlet(), "/welcome"),
                 createServletHandler(new IndexerServlet(), "/indexer"), // DEPRECATED
                 createServletHandler(new SettingsServlet(), "/settings"), csvServletHolder,
                 createServletHandler(new LoginServlet(), "/login"),

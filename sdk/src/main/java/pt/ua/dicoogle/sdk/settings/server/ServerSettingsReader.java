@@ -156,9 +156,19 @@ public interface ServerSettingsReader {
         @JsonGetter("move-destinations")
         List<MoveDestination> getMoveDestinations();
 
+        /** Reader for DICOM storage service settings */
+        interface Storage extends ServiceBase {
+            /** Whether to save the sending and receiving AE titles of incoming objects
+             * into the file meta information group.
+             */
+            @JsonGetter("save-ae-titles")
+            boolean isSaveAETitles();
+        }
+
         @JsonGetter("storage")
         ServiceBase getStorageSettings();
 
+        /** Reader for DICOM query/retrieve service settings */
         interface QueryRetrieve extends ServiceBase {
             @JacksonXmlElementWrapper(useWrapping = false, localName = "sop-class")
             @JacksonXmlProperty(localName = "sop-class")

@@ -193,6 +193,7 @@ public class ServerSettingsTest {
         // DICOM Storage settings
         assertTrue(dcm.getStorageSettings().isAutostart());
         assertEquals(6666, dcm.getStorageSettings().getPort());
+        assertEquals(true, settings.getDicomServicesSettings().getStorageSettings().isSaveAETitles());
 
         // Web server settings
         final ServerSettings.WebServer web = settings.getWebServerSettings();
@@ -355,6 +356,7 @@ public class ServerSettingsTest {
         assertEquals("/opt/mydata", ar.getMainDirectory());
         assertEquals(Arrays.asList("lucene", "postgres"), ar.getDIMProviders());
         assertEquals(Arrays.asList("filestorage", "s3"), ar.getDefaultStorage());
+        assertEquals(false, settings.getDicomServicesSettings().getStorageSettings().isSaveAETitles());
     }
 
 

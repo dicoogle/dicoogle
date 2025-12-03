@@ -3,6 +3,13 @@ This document intends to keep track of the changes performed on the various rele
 
 ## 3.5
 
+### 3.5.1 (2025-12-03)
+
+* Fix: Fix problems in unindexing servlet and documentation. (#744)
+* Enhancement: Offer custom welcome messages at the login page. (#741)
+* Enhancement: DICOM storage: save sending and receiving AE titles in FMI of stored objects. (#739)
+* Chore: Update role in README.md. (#743)
+
 ### 3.5.0 (2025-08-07)
 
 * New: Introduced machine learning provider interface. (#631, #736)

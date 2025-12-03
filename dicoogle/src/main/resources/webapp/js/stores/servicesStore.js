@@ -40,177 +40,144 @@ const ServicesStore = Reflux.createStore({
     this.dicoogle = dicoogleClient();
   },
 
-  onGetStorage: function() {
-    this.dicoogle.storage.getStatus((error, data) => {
-      if (error) {
-        console.error("onGetStorage: failure", error);
-        this.trigger({ error: "Dicoogle service error" });
-        return;
-      }
-
+  async onGetStorage() {
+    try {
+      let data = await this.dicoogle.storage.getStatus();
       this._contents.storageRunning = data.isRunning;
       this._contents.storagePort = data.port;
       this._contents.storageHostname = data.hostname;
       this._contents.storageAutostart = data.autostart;
       this.trigger(this._contents);
-    });
+    } catch (error) {
+      console.error("onGetStorage: failure", error);
+      this.trigger({ error: "Dicoogle service error" });
+    }
   },
 
-  onGetQuery: function() {
-    this.dicoogle.queryRetrieve.getStatus((error, data) => {
-      if (error) {
-        console.error("onGetQuery: failure");
-        this.trigger({ error: "Dicoogle service error" });
-        return;
-      }
-
+  async onGetQuery() {
+    try {
+      let data = await this.dicoogle.queryRetrieve.getStatus();
       this._contents.queryRunning = data.isRunning;
       this._contents.queryPort = data.port;
       this._contents.queryHostname = data.hostname;
       this._contents.queryAutostart = data.autostart;
       this.trigger(this._contents);
-    });
+    } catch (error) {
+      console.error("onGetQuery: failure");
+      this.trigger({ error: "Dicoogle service error" });
+      return;
+    }
   },
 
-  onSetStorage(running) {
-    const callback = error => {
-      if (error) {
-        console.error("Dicoogle service error", error);
-        this.trigger({ error: "Dicoogle service error" });
-        return;
+  async onSetStorage(running) {
+    try {
+      if (running) {
+        await this.dicoogle.storage.start();
+      } else {
+        await this.dicoogle.storage.stop();
       }
-
       this._contents.storageRunning = running;
       this.trigger(this._contents);
-    };
-
-    if (running) {
-      this.dicoogle.storage.start(callback);
-    } else {
-      this.dicoogle.storage.stop(callback);
+    } catch (error) {
+      console.error("Dicoogle service error", error);
+      this.trigger({ error: "Dicoogle service error" });
     }
   },
 
-  onSetStorageAutostart(enabled) {
-    this.dicoogle.storage.configure({ autostart: enabled }, error => {
-      if (error) {
-        console.error("Dicoogle service error", error);
-        this.trigger({ error: "Dicoogle service error" });
-        return;
-      }
-
+  async onSetStorageAutostart(enabled) {
+    try {
+      await this.dicoogle.storage.configure({ autostart: enabled });
       this._contents.storageAutostart = enabled;
       this.trigger(this._contents);
-    });
-  },
-
-  onSetStoragePort(port) {
-    this.dicoogle.storage.configure({ port }, error => {
-      if (error) {
-        console.error("Dicoogle service error", error);
-        this.trigger({ error: "Dicoogle service error" });
-        return;
-      }
-
-      this._contents.storagePort = port;
-      this.trigger(this._contents);
-    });
-  },
-
-  onSetStorageHostname(hostname) {
-    // using generic request to set hostname
-    // (not yet supported by dicoogle-client)
-    this.dicoogle.request('POST', this.dicoogle.Endpoints.STORAGE_SERVICE)
-      .query({ hostname })
-      .end((error, _response) => {
-        if (error) {
-          console.error("Dicoogle service error", error);
-          this.trigger({ error: "Dicoogle service error" });
-          return;
-        }
-
-        this._contents.storageHostname = hostname;
-        this.trigger(this._contents);
-      });
-  },
-
-  onSetQuery(running) {
-    const callback = error => {
-      if (error) {
-        console.error("Dicoogle service error", error);
-        this.trigger({ error: "Dicoogle service error" });
-        return;
-      }
-
-      this._contents.queryRunning = running;
-      this.trigger(this._contents);
-    };
-
-    if (running) {
-      this.dicoogle.queryRetrieve.start(callback);
-    } else {
-      this.dicoogle.queryRetrieve.stop(callback);
+    } catch (error) {
+      console.error("Dicoogle service error", error);
+      this.trigger({ error: "Dicoogle service error" });
     }
   },
 
-  onSetQueryAutostart(enabled) {
-    this.dicoogle.queryRetrieve.configure({ autostart: enabled }, error => {
-      if (error) {
-        console.error("Dicoogle service error", error);
-        this.trigger({ error: "Dicoogle service error" });
-        return;
-      }
+  async onSetStoragePort(port) {
+    try {
+      await this.dicoogle.storage.configure({ port });
+      this._contents.storagePort = port;
+      this.trigger(this._contents);
+    } catch (error) {
+      console.error("Dicoogle service error", error);
+      this.trigger({ error: "Dicoogle service error" });
+    }
+  },
 
+  async onSetStorageHostname(hostname) {
+    try {
+      await this.dicoogle.storage.configure({ hostname })
+      this._contents.storageHostname = hostname;
+      this.trigger(this._contents);
+    } catch (error) {
+      console.error("Dicoogle service error", error);
+      this.trigger({ error: "Dicoogle service error" });
+    }
+  },
+
+  async onSetQuery(running) {
+    try {
+      if (running) {
+        await this.dicoogle.queryRetrieve.start();
+      } else {
+        await this.dicoogle.queryRetrieve.stop();
+      }
+      this._contents.queryRunning = running;
+      this.trigger(this._contents);
+    } catch (error) {
+      console.error("Dicoogle service error", error);
+      this.trigger({ error: "Dicoogle service error" });
+    }
+  },
+
+  async onSetQueryAutostart(enabled) {
+    try {
+      await this.dicoogle.queryRetrieve.configure({ autostart: enabled });
       this._contents.queryAutostart = enabled;
       this.trigger(this._contents);
-    });
+    } catch (error) {
+      console.error("Dicoogle service error", error);
+      this.trigger({ error: "Dicoogle service error" });
+    }
   },
 
-  onSetQueryPort(port) {
-    this.dicoogle.queryRetrieve.configure({ port }, error => {
-      if (error) {
-        console.error("Dicoogle service error", error);
-        this.trigger({ error: "Dicoogle service error" });
-        return;
-      }
-
+  async onSetQueryPort(port) {
+    try {
+      await this.dicoogle.queryRetrieve.configure({ port });
       this._contents.queryPort = port;
       this.trigger(this._contents);
-    });
+    } catch (error) {
+      console.error("Dicoogle service error", error);
+      this.trigger({ error: "Dicoogle service error" });
+    }
   },
 
-  onSetQueryHostname(hostname) {
-    // using generic request to set hostname
-    // (not yet supported by dicoogle-client)
-    this.dicoogle.request('POST', this.dicoogle.Endpoints.QR_SERVICE)
-      .query({ hostname })
-      .end((error, _response) => {
-        if (error) {
-          console.error("Dicoogle service error", error);
-          this.trigger({ error: "Dicoogle service error" });
-          return;
-        }
-
-        this._contents.queryHostname = hostname;
-        this.trigger(this._contents);
-      });
+  async onSetQueryHostname(hostname) {
+    try {
+      await this.dicoogle.queryRetrieve.configure({ hostname });
+      this._contents.queryHostname = hostname;
+      this.trigger(this._contents);
+    } catch (error) {
+      console.error("Dicoogle service error", error);
+      this.trigger({ error: "Dicoogle service error" });
+    }
   },
 
-  onGetQuerySettings() {
-    this.dicoogle.queryRetrieve.getDicomQuerySettings((error, data) => {
-      if (error) {
-        console.error("Dicoogle service error", error);
-        this.trigger({ error: "Dicoogle service error" });
-        return;
-      }
-
+  async onGetQuerySettings() {
+    try {
+      let data = await this.dicoogle.queryRetrieve.getDicomQuerySettings();
       this._querySettings = data;
       this._contents.querySettings = this._querySettings;
       this.trigger(this._contents);
-    });
+    } catch (error) {
+      console.error("Dicoogle service error", error);
+      this.trigger({ error: "Dicoogle service error" });
+    }
   },
 
-  onSaveQuerySettings(
+  async onSaveQuerySettings(
     connectionTimeout,
     acceptTimeout,
     idleTimeout,
@@ -219,24 +186,20 @@ const ServicesStore = Reflux.createStore({
     maxPduSend,
     responseTimeout
   ) {
-    this.dicoogle.queryRetrieve.setDicomQuerySettings(
-      {
-        connectionTimeout,
-        acceptTimeout,
-        idleTimeout,
-        maxAssociations,
-        maxPduReceive,
-        maxPduSend,
-        responseTimeout
-      },
-      (error, data) => {
-        if (error) {
-          this.trigger({ error: "Dicoogle service error" });
-          console.error("Dicoogle service error", error);
-          return;
-        }
-      }
-    );
+    try {
+      await this.dicoogle.queryRetrieve.setDicomQuerySettings({
+          connectionTimeout,
+          acceptTimeout,
+          idleTimeout,
+          maxAssociations,
+          maxPduReceive,
+          maxPduSend,
+          responseTimeout
+        });
+    } catch (error) {
+      this.trigger({ error: "Dicoogle service error" });
+      console.error("Dicoogle service error", error);
+    }
   }
 });
 

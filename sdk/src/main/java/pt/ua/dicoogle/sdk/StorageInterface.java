@@ -117,29 +117,30 @@ public interface StorageInterface extends DicooglePlugin {
     /**
      * Stores a DICOM object into the storage.
      *
-     * @param dicomObject Object to be Stored
+     * @param dicomObject DICOM object to be stored
      * @param parameters a variable list of extra parameters for the retrieve
-     * @return The URI of the previously stored Object.
+     * @return The URI of the object just stored
+     * @throws IOException if an I/O error occurs during the store operation
      */
-    public URI store(DicomObject dicomObject, Object... parameters);
+    public URI store(DicomObject dicomObject, Object... parameters) throws IOException;
 
     /**
-     * Stores a new element into the storage.
+     * Stores a new item into the storage.
      *
      * @param inputStream an input stream with the contents to be stored
      * @param parameters a variable list of extra parameters for the retrieve
-     * @return the URI of the stored data
-     * @throws IOException if an I/O error occurs
+     * @return The URI of the DICOM data just stored
+     * @throws IOException if an I/O error occurs while fetching or storing DICOM data
      */
     public URI store(DicomInputStream inputStream, Object... parameters) throws IOException;
 
-    /** Removes an element at the given URI.
+    /** Removes an item at the given URI.
      * 
      * @param location the URI of the stored data
      */
     public void remove(URI location);
 
-    /** Lists the elements at the given location in the storage's file tree.
+    /** Lists the items at the given location in the storage's file tree.
      * Unlike {@link StorageInterface#at}, this method is not recursive and
      * can yield intermediate URIs representing other directories rather than
      * objects.

@@ -291,13 +291,30 @@ public class DicomStorage extends StorageService {
 
             Iterable<StorageInterface> plugins = PluginController.getInstance().getStoragePlugins(true);
 
+            int success = 0;
+            int failures = 0;
             for (StorageInterface storage : plugins) {
-                URI uri = storage.store(d);
-                if (uri != null) {
-                    // enqueue to index
-                    ImageElement element = new ImageElement(uri, as.getCallingAET(), seqNum.getAndIncrement());
-                    IndexQueueWorker.getInstance().addElement(element);
+                try {
+                    URI uri = storage.store(d);
+                    if (uri != null) {
+                        // enqueue to index
+                        ImageElement element = new ImageElement(uri, as.getCallingAET(), seqNum.getAndIncrement());
+                        IndexQueueWorker.getInstance().addElement(element);
+                        success += 1;
+                    } else {
+                        LOG.error("Failed to store DICOM object {} onto {}: null URI", iuid, storage.getName());
+                        failures += 1;
+                    }
+                } catch (IOException ex) {
+                    LOG.error("Failed to store DICOM object {} onto {}", iuid, storage.getName(), ex);
+                    failures += 1;
                 }
+            }
+
+            if (success == 0 && failures == 0) {
+                throw new DicomServiceException(rq, Status.ProcessingFailure, "No storage provider available");
+            } else if (success == 0) {
+                throw new DicomServiceException(rq, Status.ProcessingFailure, "Failed to store DICOM object");
             }
 
         } catch (Exception e) {

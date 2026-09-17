@@ -201,23 +201,44 @@ public class PluginController {
     private void initializePlugins(Collection<PluginSet> plugins) {
         for (PluginSet set : plugins) {
             logger.debug("SetPlugins: {}", set);
-
-            // provide platform to each plugin interface
-            final Collection<Collection<?>> all = Arrays.asList(set.getStoragePlugins(), set.getIndexPlugins(),
-                    set.getQueryPlugins(), set.getJettyPlugins(), set.getRestPlugins());
-            for (Collection<?> interfaces : all) {
-                if (interfaces == null) {
-                    logger.debug("Plugin set {} provided a null collection!");
-                    continue;
+            try {
+                this.initializePlugin(set);
+            } catch (Exception e) {
+                // dead plugin set, remove it from the list and log the error
+                String name;
+                try {
+                    name = set.getName();
+                } catch (Exception ex2) {
+                    logger.warn("Plugin set name cannot be retrieved: {}", ex2.getMessage());
+                    name = "UNKNOWN";
                 }
-                for (Object o : interfaces) {
-                    this.preparer.injectPlatform(o);
+                if (DEAD_PLUGIN_KILL_SWITCH) {
+                    logger.error("Unexpected error while preparing plugin set {}. Dicoogle will shut down.", name, e);
+                    System.exit(-4);
+                } else {
+                    logger.error("Unexpected error while preparing plugin set {}. Plugin set marked as dead.", name, e);
+                    this.deadPluginSets.add(new DeadPlugin(name, e));
                 }
             }
-
-            // and to the set itself
-            this.preparer.setup(set);
         }
+    }
+
+    private void initializePlugin(PluginSet set) {
+        // provide platform to each plugin interface
+        final Collection<Collection<?>> all = Arrays.asList(set.getStoragePlugins(), set.getIndexPlugins(),
+                set.getQueryPlugins(), set.getJettyPlugins(), set.getRestPlugins());
+        for (Collection<?> interfaces : all) {
+            if (interfaces == null) {
+                logger.debug("Plugin set {} provided a null collection!");
+                continue;
+            }
+            for (Object o : interfaces) {
+                this.preparer.injectPlatform(o);
+            }
+        }
+
+        // and to the set itself
+        this.preparer.setup(set);
     }
 
     private void applySettings(PluginSet set, ConfigurationHolder holder) {

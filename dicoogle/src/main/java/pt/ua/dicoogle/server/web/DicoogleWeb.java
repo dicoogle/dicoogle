@@ -189,8 +189,8 @@ public class DicoogleWeb {
         // list the all the handlers mounted above
         Handler[] handlers = new Handler[] {pluginHandler, legacyHandler, dic2png, roiExtractor, dictags,
                 createServletHandler(new WelcomeServlet(), "/welcome", null),
-                createServletHandler(new IndexerServlet(), "/indexer", Needs.authenticated()), // DEPRECATED
-                createServletHandler(new SettingsServlet(), "/settings", Needs.authenticated()), csvServletHolder,
+                createServletHandler(new IndexerServlet(), "/indexer", Needs.admin()), // DEPRECATED
+                createServletHandler(new SettingsServlet(), "/settings", Needs.admin()),csvServletHolder,
                 createServletHandler(new LoginServlet(), "/login", null),
                 createServletHandler(new LogoutServlet(), "/logout", null),
                 createServletHandler(new UserServlet(), "/user/*", Needs.admin()),

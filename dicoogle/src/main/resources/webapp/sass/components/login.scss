@@ -92,3 +92,34 @@
   width: 0px;
   margin-top: 30px;
 }
+
+.newAppLink {
+  display: inline-block;
+  background-color: $blue1;
+  color: $button_color;
+  &:hover,
+  &:focus {
+    background-color: $blue4;
+    color: $button_color;
+    text-decoration: underline;
+  }
+
+  margin-top: 12px;
+  padding: 10px 18px;
+  border: 2px solid $blue1;
+  border-radius: 4px;
+  background-color: $blue1;
+  font-size: 20px;
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 3px solid $button_color;
+    outline-offset: 3px;
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}

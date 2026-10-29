@@ -187,6 +187,7 @@ class App extends React.Component {
             id="webapp-logo-light"
           />
           <div className="pull-right">
+            <a className="highlight" href="/experimental">New Dicoogle UI</a>
             <span
               className="user-name usernameLogin"
               style={{ paddingRight: "0.5em" }}

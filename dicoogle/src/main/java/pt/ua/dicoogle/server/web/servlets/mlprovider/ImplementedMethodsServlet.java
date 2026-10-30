@@ -19,9 +19,11 @@
 package pt.ua.dicoogle.server.web.servlets.mlprovider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.restlet.data.Status;
 import pt.ua.dicoogle.plugins.PluginController;
 import pt.ua.dicoogle.sdk.mlprovider.MLMethod;
 import pt.ua.dicoogle.sdk.mlprovider.MLProviderInterface;
+import pt.ua.dicoogle.server.web.utils.ResponseUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -47,6 +49,10 @@ public class ImplementedMethodsServlet extends HttpServlet {
         }
 
         MLProviderInterface mlPlugin = PluginController.getInstance().getMachineLearningProviderByName(provider, true);
+        if (mlPlugin == null) {
+            ResponseUtil.sendError(response, Status.CLIENT_ERROR_NOT_FOUND.getCode(), "Provider not found");
+            return;
+        }
         Set<MLMethod> implementedMethods = mlPlugin.getImplementedMethods();
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();

@@ -59,6 +59,10 @@ public class CacheServlet extends HttpServlet {
         MLDicomDataset dataset;
         try {
             dataset = mapper.readValue(dataString, MLDicomDataset.class);
+            if (PluginController.getInstance().getMachineLearningProviderByName(provider, true) == null) {
+                ResponseUtil.sendError(resp, Status.CLIENT_ERROR_NOT_FOUND.getCode(), "Provider not found");
+                return;
+            }
             PluginController.getInstance().cache(provider, dataset);
         } catch (Exception e) {
             log.error("Error parsing json string", e);

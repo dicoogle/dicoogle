@@ -35,6 +35,7 @@ import pt.ua.dicoogle.sdk.datastructs.dim.Point2D;
 import pt.ua.dicoogle.server.web.dicom.WSISopDescriptor;
 import pt.ua.dicoogle.sdk.mlprovider.MLInference;
 import pt.ua.dicoogle.sdk.mlprovider.MLInferenceRequest;
+import pt.ua.dicoogle.sdk.mlprovider.MLProviderInterface;
 import pt.ua.dicoogle.sdk.task.Task;
 import pt.ua.dicoogle.server.web.dicom.ROIExtractor;
 import pt.ua.dicoogle.server.web.utils.ResponseUtil;
@@ -101,6 +102,13 @@ public class InferServlet extends HttpServlet {
 
         String provider = body.get("provider").asText();
         String modelID = body.get("modelID").asText();
+
+        MLProviderInterface mlPlugin = PluginController.getInstance().getMachineLearningProviderByName(provider, true);
+        if (mlPlugin == null) {
+            ResponseUtil.sendError(response, Status.CLIENT_ERROR_NOT_FOUND.getCode(), "Provider not found");
+            return;
+        }
+
         boolean wsi = body.has("wsi") && body.get("wsi").asBoolean();
         DimLevel level = DimLevel.valueOf(body.get("level").asText().toUpperCase());
         String dimUID = body.get("uid").asText();

@@ -22,8 +22,11 @@ package pt.ua.dicoogle.sdk.settings.server;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
 import pt.ua.dicoogle.sdk.datastructs.AdditionalSOPClass;
 import pt.ua.dicoogle.sdk.datastructs.AdditionalTransferSyntax;
 import pt.ua.dicoogle.sdk.datastructs.MoveDestination;
@@ -109,10 +112,12 @@ public interface ServerSettingsReader {
         boolean isUseIIORegistry();
 
         @JsonGetter("dim-provider")
+        @JsonSetter(nulls = Nulls.AS_EMPTY)
         @JacksonXmlElementWrapper(localName = "dim-providers")
         List<String> getDIMProviders();
 
         @JsonGetter("default-storage")
+        @JsonSetter(nulls = Nulls.AS_EMPTY)
         @JacksonXmlElementWrapper(localName = "default-storages")
         List<String> getDefaultStorage();
 

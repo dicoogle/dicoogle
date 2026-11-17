@@ -73,8 +73,16 @@ const LoginView = createReactClass({
 
             <div>
               <h4 style={{ textAlign: "center" }}
-              // eslint-disable-next-line react/no-danger
-              dangerouslySetInnerHTML={welcomeMessage} />
+                // eslint-disable-next-line react/no-danger
+                dangerouslySetInnerHTML={welcomeMessage} />
+
+              <div>
+                <h4 style={{ textAlign: "center" }}>
+                  <a className="newAppLink" href="/experimental">
+                    Try the new Dicoogle UI!
+                  </a>
+                </h4>
+              </div>
             </div>
 
             <div className="loginA">

@@ -19,9 +19,11 @@
 package pt.ua.dicoogle.server.web.servlets.mlprovider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.restlet.data.Status;
 import pt.ua.dicoogle.plugins.PluginController;
 import pt.ua.dicoogle.sdk.mlprovider.MLProvider;
 import pt.ua.dicoogle.sdk.mlprovider.MLProviderInterface;
+import pt.ua.dicoogle.server.web.utils.ResponseUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -51,6 +53,10 @@ public class ListAllModelsServlet extends HttpServlet {
         if (provider != null && !provider.isEmpty()) {
             MLProviderInterface mlPlugin =
                     PluginController.getInstance().getMachineLearningProviderByName(provider, true);
+            if (mlPlugin == null) {
+                ResponseUtil.sendError(response, Status.CLIENT_ERROR_NOT_FOUND.getCode(), "Provider not found");
+                return;
+            }
             if (mlPlugin.isAvailable()) {
                 MLProvider p = new MLProvider(mlPlugin.getName());
                 p.setModels(mlPlugin.listModels());

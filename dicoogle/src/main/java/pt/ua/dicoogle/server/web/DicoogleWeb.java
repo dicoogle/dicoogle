@@ -30,6 +30,7 @@ import pt.ua.dicoogle.server.web.servlets.management.*;
 import pt.ua.dicoogle.server.web.servlets.search.*;
 import pt.ua.dicoogle.server.web.servlets.search.ExportServlet.ExportType;
 import pt.ua.dicoogle.server.web.servlets.search.SearchServlet.SearchType;
+import pt.ua.dicoogle.server.web.servlets.storage.*;
 import pt.ua.dicoogle.server.web.servlets.accounts.LoginServlet;
 import pt.ua.dicoogle.server.web.servlets.accounts.UserServlet;
 
@@ -195,6 +196,7 @@ public class DicoogleWeb {
                 createServletHandler(new LogoutServlet(), "/logout", null),
                 createServletHandler(new UserServlet(), "/user/*", Needs.admin()),
                 createServletHandler(new SearchServlet(), "/search", Needs.authenticated()),
+                createServletHandler(new StorageServlet(), "/storage", Needs.authenticated()),
                 createServletHandler(new SearchServlet(SearchType.PATIENT), "/searchDIM", Needs.authenticated()),
                 createServletHandler(new DumpServlet(), "/dump", Needs.authenticated()),
                 createServletHandler(new IndexerSettingsServlet(IndexerSettingsServlet.SettingsType.path),
